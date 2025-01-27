@@ -6,7 +6,7 @@
 /*   By: ramzerk <ramzerk@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 22:15:32 by rabouzia          #+#    #+#             */
-/*   Updated: 2025/01/27 23:00:47 by ramzerk          ###   ########.fr       */
+/*   Updated: 2025/01/27 23:18:50 by ramzerk          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,15 @@ int main(int ac, char **av) {
 		close(fd);
 		exit(1);
 	}
-		
+	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)mapped;
+	Elf64_Shdr *section_headers = (Elf64_Shdr *)((char *)mapped + ehdr->e_shoff);
+	
+	for (int i = 0; i < ehdr->e_shnum; i++) 
+	{
+		Elf64_Shdr *sh = &section_headers[i];
+		printf("Section %d offset: %ld, size: %ld\n", i, sh->sh_offset, sh->sh_size);
+	}
+
 }
 
 
