@@ -1,0 +1,126 @@
+Roadmap for Recreating the nm Command
+Phase 1: Understand the Basics (Week 1)
+
+    Get Comfortable with C Programming
+        Ensure that you’re familiar with key C concepts like pointers, structs, and file I/O.
+        If needed, review C documentation and tutorials on memory management and low-level I/O.
+
+    Learn Unix/Linux System Calls
+        Focus on the system calls that you'll be allowed to use in your project:
+            open(), close(), read(), write(), fstat(), mmap(), munmap()
+        Why? These system calls will be the foundation for interacting with files and memory.
+        Resources: Linux man pages for system calls
+
+    Basic File I/O and Mapping
+        Understand how to open, read, and write files using system calls.
+        Learn how to map files into memory with mmap() and unmap them with munmap().
+
+Phase 2: Deep Dive into ELF Files (Week 2)
+
+    Study the ELF File Format
+        Learn about the structure of an ELF file:
+            ELF Header: Contains information about the file and section headers.
+            Section Headers: Describes the various sections (e.g., symbol table, program code, data).
+            Symbol Table: Holds the list of symbols used in the executable.
+            String Table: Contains the names of symbols in the ELF file.
+        Why? Understanding the format of ELF files is key to extracting and displaying symbols like nm does.
+        Resources:
+            ELF File Format (Wikipedia)
+            ELF Specification
+
+    ELF Header and Section Headers
+        Study the ELF header to understand how sections are laid out.
+        Focus on e_shoff (section header offset), e_shnum (number of section headers), and e_ident (identification field).
+        Learn to parse and interpret the section header table.
+
+Phase 3: Symbol Tables and Linking (Week 3)
+
+    Learn About Symbol Tables
+        Understand the symbol table's role in linking and dynamic loading.
+        Explore the structure of symbol table entries, including symbol types, addresses, and binding.
+        Learn about static vs. dynamic symbols and how they are handled in ELF files.
+        Why? The main goal of nm is to list symbols, so understanding how they are structured is crucial.
+
+    Parse the Symbol Table
+        Learn to read the symbol table from the ELF file, including how to locate it using the section headers.
+        Learn how to extract and display each symbol’s address, type, and name.
+        Learn to use the string table to get symbol names from indices in the symbol table.
+        Resources:
+            Symbol Tables in ELF
+            ELF Symbol Table Documentation
+
+Phase 4: Hexadecimal and Low-Level Formatting (Week 4)
+
+    Hexadecimal Representation
+        Get comfortable with hexadecimal numbers and how to print them.
+        Understand the purpose of displaying data in hex when dealing with memory and binary files (ELF files).
+        Learn how to format and print data (like addresses and symbol offsets) in hexadecimal.
+
+    Implement Hex Output Functions
+        Write functions to print addresses, symbol types, and other relevant information in a human-readable format (using write() instead of printf()).
+        Why? nm prints symbols and their associated addresses in hex format, so you’ll need to format output this way.
+
+Phase 5: Implementing nm Logic (Week 5)
+
+    Implement Basic nm Command
+        Start by reading the ELF file and verifying it’s a valid ELF file (check the magic number).
+        Extract and display basic ELF header information, including entry point, section headers, and symbol table locations.
+        Goal: Make sure you can open the ELF file, map it into memory, and extract key metadata (e.g., section headers).
+
+    Display Symbols
+        Parse and display the symbol table.
+        Show each symbol’s address, type (e.g., function, object), and name.
+        Filter symbols as needed (e.g., only display global symbols).
+        Goal: Implement the core functionality of nm by listing symbols with proper formatting.
+
+Phase 6: Handling Dynamic Symbols and Advanced Features (Week 6)
+
+    Handle Dynamic Symbols
+        Understand how nm differentiates between static and dynamic symbols.
+        Learn to parse dynamic symbol tables (if applicable).
+        Why? For more advanced nm functionality, you'll need to be able to recognize and display dynamic symbols correctly.
+
+    Explore nm Options
+        Add support for nm options (e.g., -g for global symbols, -n for sorting symbols by address).
+        Understand how options change the display format (e.g., symbol sorting, filtering by type).
+        Why? These options allow nm to give users a customized view of the symbols.
+
+Phase 7: Testing, Debugging, and Refining (Week 7)
+
+    Test on Real ELF Files
+        Test your program with different ELF files: executables, object files, shared libraries.
+        Handle edge cases like empty symbol tables, symbols with no names, and more.
+        Debug and fix issues as they arise.
+
+    Optimize and Refine the Code
+        Optimize memory usage and make your program efficient.
+        Handle errors gracefully and ensure your program works well on a variety of input files.
+        Why? Thorough testing ensures your nm implementation is robust and reliable.
+
+Phase 8: Documentation and Final Touches (Week 8)
+
+    Document the Code
+        Write documentation for your code, explaining how it works and how to use it.
+        Add comments to your code to help others (and yourself) understand your implementation.
+        Why? Good documentation is essential for maintaining and sharing your project.
+
+    Prepare for Future Extensions
+        Once your basic version of nm is working, consider adding more features or refactoring code for better performance.
+        Potential future improvements could include handling more ELF section types, better error handling, or more advanced symbol filtering.
+
+Weekly Breakdown (Summary)
+Week	Focus	Key Topics
+Week 1	C Programming Basics + System Calls	File I/O, system calls like open(), write(), mmap(), etc.
+Week 2	ELF File Format	ELF header, section headers, symbol tables, string tables
+Week 3	Symbol Table Parsing	Static vs dynamic symbols, symbol table structure
+Week 4	Hexadecimal & Formatting Output	Hexadecimal numbers, formatting output with write()
+Week 5	Implementing Basic nm	Reading ELF files, extracting ELF header info, displaying basic symbols
+Week 6	Dynamic Symbols & Advanced Features	Handling dynamic symbols, supporting nm options (e.g., -g, -n)
+Week 7	Testing and Debugging	Real-world ELF files, edge cases, debugging issues
+Week 8	Documentation and Optimization	Code documentation, final code optimization, future improvements
+Additional Resources:
+
+    ELF Files: ELF Format on Wikipedia
+    Linux System Calls: Linux man pages
+    nm Command Documentation: nm man page
+    C Programming: Learn C Programming
