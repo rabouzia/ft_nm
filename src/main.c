@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ramzerk <ramzerk@student.42.fr>            +#+  +:+       +#+        */
+/*   By: rzoldik <rzoldik@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 22:15:32 by rabouzia          #+#    #+#             */
-/*   Updated: 2024/11/29 00:55:10 by ramzerk          ###   ########.fr       */
+/*   Updated: 2025/01/27 16:16:52 by rzoldik          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,50 +28,56 @@
 //     time_t    st_ctime;   /* time of last status change */
 // };
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
-int main ()
-{
-	struct stat sb;
-	int fd = open("./ft_nm",O_RDONLY);
-	fstat(fd, &sb);
-
-   printf("File type:                ");
-
-   switch (sb.st_mode & S_IFMT) {
-    case S_IFBLK:  printf("block device\n");            break;
-    case S_IFCHR:  printf("character device\n");        break;
-    case S_IFDIR:  printf("directory\n");               break;
-    case S_IFIFO:  printf("FIFO/pipe\n");               break;
-    case S_IFLNK:  printf("symlink\n");                 break;
-    case S_IFREG:  printf("regular file\n");            break;
-    case S_IFSOCK: printf("socket\n");                  break;
-    default:       printf("unknown?\n");                break;
+int main(int ac, char **av) {
+	if (ac != 2)
+		return 0;
+    int fd = open(av[1], O_RDONLY);  // Open the file in read-only mode
+    if (fd == -1) {
+        perror("Failed to open file");
+        return 1;
     }
 
-   printf("I-node number:            %ld\n", (long) sb.st_ino);
+    // Get the size of the file
+    off_t file_size = lseek(fd, 0, SEEK_END);
+    if (file_size == -1) {
+        perror("Failed to get file size");
+        close(fd);
+        return 1;
+    }
 
-   printf("Mode:                     %lo (octal)\n",
-            (unsigned long) sb.st_mode);
+    // Map the file into memory
+    char *mapped = mmap(NULL, file_size, PROT_READ, MAP_SHARED, fd, 0);
+    if (mapped == MAP_FAILED) {
+        perror("Failed to map file");
+        close(fd);
+        return 1;
+    }
 
-   printf("Link count:               %ld\n", (long) sb.st_nlink);
-    printf("Ownership:                UID=%ld   GID=%ld\n",
-            (long) sb.st_uid, (long) sb.st_gid);
+    // Print the entire content of the file byte-by-byte
+    for (off_t i = 0; i < file_size; i++) {
+        printf("%c", mapped[i]);
+    }
+    printf("\n");
 
-   printf("Preferred I/O block size: %ld bytes\n",
-            (long) sb.st_blksize);
-    printf("File size:                %lld bytes\n",
-            (long long) sb.st_size);
-    printf("Blocks allocated:         %lld\n",
-            (long long) sb.st_blocks);
+    // Unmap the file and close the file descriptor
+    if (munmap(mapped, file_size) == -1) {
+        perror("Failed to unmap file");
+        close(fd);
+        return 1;
+    }
 
-   printf("Last status change:       %s", ctime(&sb.st_ctime));
-    printf("Last file access:         %s", ctime(&sb.st_atime));
-    printf("Last file modification:   %s", ctime(&sb.st_mtime));
-
-   exit(EXIT_SUCCESS);
+    close(fd);
+    return 0;
 }
 
 
 /*
 	- decode les binaire (.o)
+		- utiliser mmap
 */

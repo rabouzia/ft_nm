@@ -3,15 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   ft_nm.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ramzerk <ramzerk@student.42.fr>            +#+  +:+       +#+        */
+/*   By: rzoldik <rzoldik@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/29 00:29:40 by ramzerk           #+#    #+#             */
-/*   Updated: 2024/11/29 00:52:54 by ramzerk          ###   ########.fr       */
+/*   Updated: 2025/01/27 15:10:35 by rzoldik          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef FT_NM_H
-#define FT_NM_H
+#pragma once
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -22,4 +21,3 @@
 #include <fcntl.h>    // open
 #include <sys/stat.h> // fstat
 
-#endif
