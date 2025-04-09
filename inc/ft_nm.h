@@ -20,13 +20,38 @@
 #include <sys/mman.h> // munmap, mmap
 #include <fcntl.h>    // open
 #include <sys/stat.h> // fstat
-// #include <elf.h>
+#include <elf.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 #define OP_ERR "Failed to open file\n"
 #define ARG_ERR "Usage ./ft_nm [-flag] <binary>\n"
 #define FSTAT_ERR "fstat error\n"
 #define MMAP_ERR "mmap error\n"
+
+typedef struct s_nm
+{
+    char letter;
+    Elf64_Addr addr;
+    char *symbol;
+    struct  s_nm *next;
+}               t_nm;
+
+
+void	ft_nmaddback(t_nm **head, t_nm *new);
+t_nm	*ft_nmnew(char *symbol, Elf64_Addr addr, char c);
+t_nm	*ft_nmlast(t_nm *head);
+void    ft_check_same(t_nm **nm);
+void	ft_nmclear(t_nm **nm);
+void    ft_nmprint(t_nm *nm);
+void	free_node(t_nm *nm);
+void	remove_node(t_nm *nm, char *to_delete);
+void	remove_last(t_nm *nm);
+void	remove_first(t_nm **nm);
+int	    search_nm(t_nm *nm, char *key);
+bool	delete_node(t_nm **nm, char *to_delete);
+void get_flag(t_nm *nm);
+
 
 
 

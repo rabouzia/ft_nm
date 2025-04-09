@@ -2,7 +2,8 @@ NAME     =		ft_nm
 
 DIR 	 =      src/
 
-SRC	     =		src/main.c							\
+SRC	     =		src/main.c\
+				src/library.c
 
 CC       =	    cc
 
