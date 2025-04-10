@@ -164,6 +164,17 @@ void	free_node(t_nm *nm)
 	free(nm);
 }
 
+int ft_nmlen(t_nm *nm)
+{
+	int i  = 0;
+	while(nm)
+	{
+		i++;
+		nm= nm->next;
+	}
+	return i;
+}
+
 
 void get_flag(t_nm *nm)
 {
@@ -173,4 +184,21 @@ void get_flag(t_nm *nm)
             nm->letter = 'T';
         nm = nm->next;
     }
+}
+
+
+void ft_putchar(char c)
+{
+	write(1, &c, 1);
+}
+
+
+void ft_putstr_fd(char *str)
+{
+	int i = 0;
+	while(str[i])
+	{
+		ft_putchar(str[i]);
+		i++;
+	}
 }

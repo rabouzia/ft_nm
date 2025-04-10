@@ -23,17 +23,41 @@ char get_symbol_letter(Elf64_Sym sym, char **section_names, int section_count) {
     if (strcmp(secname, ".bss") == 0)
         return (bind == STB_LOCAL) ? 'b' : 'B';
 
-    return (bind == STB_LOCAL) ? 'n' : 'N'; // fallback
+    return (bind == STB_LOCAL) ? 'n' : 'N';
 }
 
+/*
+
+-a     Display all symbol table entries, including those inserted for use by debuggers.
+
+-g     Display only global (external) symbols.
+
+-p     Don't sort; display in symbol-table order.
+
+-u     Display only undefined symbols.
+
+-r     Sort in reverse order.
+
+	remove unauthorised functions
+
+*/
 
 int main(int ac, char **av) {
 	t_nm *nm = NULL;
 	
 	ft_nmprint(nm);
-	if (ac != 2)
+	if (ac < 2 || ac > 3)
 		return(dprintf(2, ARG_ERR));
-
+	if (!is_valid_option()) //-a -u or -au 
+	{
+			if (-r)
+				print_reverse();
+			if (-u)
+				print_undefined_only();
+			if (-p)
+				print_nosort(); // jai pas capter
+			if (-a)
+	}
 	int fd = open(av[1], O_RDONLY);
     if (fd == -1) 
 		return(dprintf(2, OP_ERR));
@@ -127,6 +151,7 @@ int main(int ac, char **av) {
 	}
 	
 	get_flag(nm);
+
 	ft_nmprint(nm);
 	
 	ft_nmclear(&nm);
