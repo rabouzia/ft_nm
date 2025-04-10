@@ -1,6 +1,5 @@
 #include "ft_nm.h"
 
-
 void	ft_nmaddback(t_nm **head, t_nm *new)
 {
 	if (!head)
@@ -55,12 +54,13 @@ void ft_nmprint(t_nm *nm)
 {
     while(nm)
     {
-        if (nm->letter != '-'){
-            printf("%18c %s\n", nm->letter, nm->symbol);
-        }
-        else
-          printf("%016lx   %s\n", nm->addr, nm->symbol);
-
+        
+		if (nm->addr == 0000000000) 
+			printf("%16c " , ' ');
+		else
+			printf("%016lx " , nm->addr);
+		printf(" %c ",nm->letter);
+		printf("%s\n", nm->symbol);
             // printf("\n", nm->addr);
         nm = nm->next;
     }

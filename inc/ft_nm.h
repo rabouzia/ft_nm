@@ -34,6 +34,7 @@ typedef struct s_nm
     char letter;
     Elf64_Addr addr;
     char *symbol;
+    bool defined;
     struct  s_nm *next;
 }               t_nm;
 

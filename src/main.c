@@ -26,6 +26,42 @@ char get_symbol_letter(Elf64_Sym sym, char **section_names, int section_count) {
     return (bind == STB_LOCAL) ? 'n' : 'N';
 }
 
+int strcmp_ignore_first_underscore(const char* a, const char* b) {
+int i = 0, j = 0;
+
+    // If the first character of either string is '_', skip it for comparison
+    while (a[i] == '_') i++;
+    while (b[j] == '_') j++;
+
+    // Now compare the strings from the second character onwards
+    while (a[i] && b[j]) {
+        if (a[i] != b[j]) return a[i] - b[j];
+        i++;
+        j++;
+    }
+
+    return a[i] - b[j];  // Handle remaining characters if they differ
+}
+void ft_nmsort(t_nm* head) {
+    if (!head) return;
+    int swapped;
+    t_nm* ptr;
+    do {
+        swapped = 0;
+        ptr = head;
+        while (ptr->next) {
+            if (strcmp_ignore_first_underscore(ptr->symbol, ptr->next->symbol) > 0) {
+                // swap strings, not nodes
+                char* tmp = ptr->symbol;
+                ptr->symbol = ptr->next->symbol;
+                ptr->next->symbol = tmp;
+                swapped = 1;
+            }
+            ptr = ptr->next;
+        }
+    } while (swapped);
+}
+
 /*
 
 -a     Display all symbol table entries, including those inserted for use by debuggers.
@@ -48,16 +84,21 @@ int main(int ac, char **av) {
 	ft_nmprint(nm);
 	if (ac < 2 || ac > 3)
 		return(dprintf(2, ARG_ERR));
-	if (!is_valid_option()) //-a -u or -au 
-	{
-			if (-r)
-				print_reverse();
-			if (-u)
-				print_undefined_only();
-			if (-p)
-				print_nosort(); // jai pas capter
-			if (-a)
-	}
+	
+	// if (!is_valid_option()) //-a -u or -au 
+	// {
+	// 		if (-r)
+	// 			print_reverse();
+	// 		if (-u)
+	// 			print_undefined_only();
+	// 		if (-p)
+	// 			print_nosort(); // jai pas capter
+	// 		if (-a)
+	// }
+	// int i =0;
+	// while(strcmp(av[i][0],"-"))
+	// 	i++;
+
 	int fd = open(av[1], O_RDONLY);
     if (fd == -1) 
 		return(dprintf(2, OP_ERR));
@@ -144,13 +185,17 @@ int main(int ac, char **av) {
 
 					// printf("Symbol : %hu\n",symtab[j].st_shndx);
 					ft_nmaddback(&nm, ft_nmnew(strtab + symtab[j].st_name, symtab[j].st_value, get_symbol_letter(symtab[j], section_names, ehdr->e_shnum)));
-				
+					// if ()
 				}
 				// nm = nm->next;
 		}
 	}
 	
-	get_flag(nm);
+	// get_flag(nm);
+	
+	// ft_nmdouble(nm);
+	ft_nmsort(nm);
+	
 
 	ft_nmprint(nm);
 	
