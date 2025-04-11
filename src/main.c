@@ -31,13 +31,13 @@ void parse_args(int ac, char **av, t_opt *opts)
 {
     int file_set = 0;
 
-    for (int i = 1; i < argc; i++) 
+    for (int i = 1; i < ac; i++) 
 	{
         if (av[i][0] == '-') 
 		{
             for (int j = 1; av[i][j]; j++)
 			{
-                switch (argv[i][j])
+                switch (av[i][j])
 				{
                     case 'a': opts->opt_a = 1; break;
                     case 'r': opts->opt_r = 1; break;
@@ -45,14 +45,14 @@ void parse_args(int ac, char **av, t_opt *opts)
                     case 'u': opts->opt_u = 1; break;
                     case 'p': opts->opt_p = 1; break;
                     default:
-                        fprintf(stderr, "Erreur : option inconnue -%c\n", argv[i][j]);
+                        fprintf(stderr, "Erreur : option inconnue -%c\n", av[i][j]);
                         exit(EXIT_FAILURE);
                 }
             }
         } 
 		else if (!file_set) 
 		{
-            opts->filename = argv[i];
+            opts->filename = av[i];
             file_set = 1;
         } 
 		else 
