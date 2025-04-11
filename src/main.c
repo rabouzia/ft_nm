@@ -27,7 +27,7 @@ char get_symbol_letter(Elf64_Sym sym, char **section_names, int section_count)
     return (bind == STB_LOCAL) ? 'n' : 'N';
 }
 
-void parse_args(int ac, char **av, nm_options_t *opts) 
+void parse_args(int ac, char **av, t_opt *opts) 
 {
     int file_set = 0;
 
@@ -127,9 +127,9 @@ int main(int ac, char **av) {
 	t_nm *nm = NULL;
 	
 	ft_nmprint(nm);
-	if (ac < 2 || ac > 3)
+	if (ac < 2 )
 		return(dprintf(2, ARG_ERR));
-	
+	parse_args(ac, av, &nm->options)
 	// if (!is_valid_option()) //-a -u or -au 
 	// {
 	// 		if (-r)

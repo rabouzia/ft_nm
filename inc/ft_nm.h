@@ -6,7 +6,7 @@
 /*   By: ramzerk <ramzerk@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/29 00:29:40 by ramzerk           #+#    #+#             */
-/*   Updated: 2025/04/11 22:25:30 by ramzerk          ###   ########.fr       */
+/*   Updated: 2025/04/11 22:56:37 by ramzerk          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,21 +29,23 @@
 #define FSTAT_ERR "fstat error\n"
 #define MMAP_ERR "mmap error\n"
 
-typedef struct {
+typedef struct s_opt{
     int opt_a;
     int opt_r;
     int opt_g;
     int opt_u;
     int opt_p;
     char *filename;
-} nm_options_t;
+} t_opt;
 
 typedef struct s_nm
 {
+	t_opt options;
     char letter;
     Elf64_Addr addr;
     char *symbol;
     bool defined;
+	
     struct  s_nm *next;
 }               t_nm;
 
