@@ -6,7 +6,7 @@
 /*   By: ramzerk <ramzerk@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/29 00:29:40 by ramzerk           #+#    #+#             */
-/*   Updated: 2025/04/07 02:26:34 by ramzerk          ###   ########.fr       */
+/*   Updated: 2025/04/11 22:25:30 by ramzerk          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,15 @@
 #define ARG_ERR "Usage ./ft_nm [-flag] <binary>\n"
 #define FSTAT_ERR "fstat error\n"
 #define MMAP_ERR "mmap error\n"
+
+typedef struct {
+    int opt_a;
+    int opt_r;
+    int opt_g;
+    int opt_u;
+    int opt_p;
+    char *filename;
+} nm_options_t;
 
 typedef struct s_nm
 {

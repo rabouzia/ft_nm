@@ -1,7 +1,8 @@
 #include "ft_nm.h"
 
 
-char get_symbol_letter(Elf64_Sym sym, char **section_names, int section_count) {
+char get_symbol_letter(Elf64_Sym sym, char **section_names, int section_count)
+{
     unsigned char bind = ELF64_ST_BIND(sym.st_info);
     unsigned char type = ELF64_ST_TYPE(sym.st_info);
     Elf64_Half shndx = sym.st_shndx;
@@ -12,46 +13,90 @@ char get_symbol_letter(Elf64_Sym sym, char **section_names, int section_count) {
     if (bind == STB_WEAK) return (type == STT_OBJECT) ? 'v' : 'w';
 
     if (shndx >= section_count || section_names[shndx] == NULL)
-        return '?';  // invalid section
+        return '?';
 
     const char *secname = section_names[shndx];
 
-    if (strcmp(secname, ".text") == 0)
+    if (ft_strcmp(secname, ".text") == 0)
         return (bind == STB_LOCAL) ? 't' : 'T';
-    if (strcmp(secname, ".data") == 0)
+    if (ft_strcmp(secname, ".data") == 0)
         return (bind == STB_LOCAL) ? 'd' : 'D';
-    if (strcmp(secname, ".bss") == 0)
+    if (ft_strcmp(secname, ".bss") == 0)
         return (bind == STB_LOCAL) ? 'b' : 'B';
 
     return (bind == STB_LOCAL) ? 'n' : 'N';
 }
 
-int strcmp_ignore_first_underscore(const char* a, const char* b) {
-int i = 0, j = 0;
+void parse_args(int ac, char **av, nm_options_t *opts) 
+{
+    int file_set = 0;
 
-    // If the first character of either string is '_', skip it for comparison
-    while (a[i] == '_') i++;
-    while (b[j] == '_') j++;
+    for (int i = 1; i < argc; i++) 
+	{
+        if (argv[i][0] == '-') 
+		{
+            for (int j = 1; argv[i][j]; j++)
+			{
+                switch (argv[i][j])
+				{
+                    case 'a': opts->opt_a = 1; break;
+                    case 'r': opts->opt_r = 1; break;
+                    case 'g': opts->opt_g = 1; break;
+                    case 'u': opts->opt_u = 1; break;
+                    case 'p': opts->opt_p = 1; break;
+                    default:
+                        fprintf(stderr, "Erreur : option inconnue -%c\n", argv[i][j]);
+                        exit(EXIT_FAILURE);
+                }
+            }
+        } 
+		else if (!file_set) 
+		{
+            opts->filename = argv[i];
+            file_set = 1;
+        } 
+		else 
+		{
+            fprintf(stderr, "Erreur : trop de fichiers spécifiés.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
 
-    // Now compare the strings from the second character onwards
-    while (a[i] && b[j]) {
-        if (a[i] != b[j]) return a[i] - b[j];
+    if (!opts->filename) {
+        fprintf(stderr, "Erreur : aucun fichier spécifié.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+int strcmp_ignore_first_underscore(const char* a, const char* b)
+{
+	int i = 0, j = 0;
+    while (a[i] == '_')
+		i++;
+    while (b[j] == '_')
+		j++;
+    while (a[i] && b[j]) 
+	{
+        if (a[i] != b[j]) 
+			return a[i] - b[j];
         i++;
         j++;
     }
-
-    return a[i] - b[j];  // Handle remaining characters if they differ
+    return a[i] - b[j];
 }
-void ft_nmsort(t_nm* head) {
+void ft_nmsort(t_nm* head) 
+{
     if (!head) return;
     int swapped;
     t_nm* ptr;
     do {
         swapped = 0;
         ptr = head;
-        while (ptr->next) {
-            if (strcmp_ignore_first_underscore(ptr->symbol, ptr->next->symbol) > 0) {
-                // swap strings, not nodes
+        while (ptr->next) 
+		{
+            if (ignore_underscore(ptr->symbol, ptr->next->symbol) > 0) 
+			{
                 char* tmp = ptr->symbol;
                 ptr->symbol = ptr->next->symbol;
                 ptr->next->symbol = tmp;
@@ -132,41 +177,6 @@ int main(int ac, char **av) {
 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file_data;
 	Elf64_Shdr *section_headers = (Elf64_Shdr *)((char *)file_data + ehdr->e_shoff);
 	
-	// for (int i = 0; i < ehdr->e_shnum; i++) 
-	// {
-	// 	Elf64_Shdr *sh = &section_headers[i];
-	// 	printf("Section %d offset: %ld, size: %ld\n", i, sh->sh_offset, sh->sh_size);
-	// 	for (int i = 0; i < ehdr->e_shnum; i++){
-	// 	if (section_headers[i].sh_type == SHT_SYMTAB) {
-	// 		symtab = (Elf64_Sym *)((char *)file_data + section_headers[i].sh_offset);
-	// 		break; }
-	// 	}
-	// // }
-
-	// Elf64_Shdr *section_headers = (Elf64_Shdr *)((char *)file_data + elf_header->e_shoff);
-    // Elf64_Sym *symtab = NULL;  // Declare symtab here
-
-    // Check all section headers
-    // for (int i = 0; i < elf_header->e_shnum; i++) {
-    //     Elf64_Shdr *sh = &section_headers[i];
-    //     printf("Section %d: type = %u, offset = %ld, size = %ld\n", i, sh->sh_type, sh->sh_offset, sh->sh_size);
-
-    //     // Look for the symbol table (SHT_SYMTAB or SHT_DYNSYM)
-    //     // if (sh->sh_type == SHT_SYMTAB || sh->sh_type == SHT_DYNSYM) {
-    //         symtab = (Elf64_Sym *)((char *)file_data + sh->sh_offset);
-    //         printf("Found symbol table of type %u at offset %ld\n", sh->sh_type, sh->sh_offset);
-    //         // break; // Exit after finding the symbol table
-    //     // }
-	// 	Elf64_Shdr *strtab_header = &section_headers[elf_header->e_shstrndx];
-	// 	char *string_table = (char *)file_data + strtab_header->sh_offset;
-		
-	// 	printf("%s\n", string_table);
-		// for (int i = 0; symtab[i].st_name != 0; i++) {
-		// 	// Print symbol name using the string table
-		// 	printf("Symbol %d: %s\n", i, string_table + symtab[i].st_name);
-		// }
-    // }
-
 	char **section_names = malloc(sizeof(char *) * ehdr->e_shnum);
 	
 	for (int i = 0; i < elf_header->e_shnum; i++) {
@@ -202,7 +212,3 @@ int main(int ac, char **av) {
 	ft_nmclear(&nm);
 }
 }
-
-/*
-	
-*/
