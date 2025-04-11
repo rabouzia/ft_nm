@@ -17,11 +17,11 @@ char get_symbol_letter(Elf64_Sym sym, char **section_names, int section_count)
 
     const char *secname = section_names[shndx];
 
-    if (ft_strcmp(secname, ".text") == 0)
+    if (strcmp(secname, ".text") == 0)
         return (bind == STB_LOCAL) ? 't' : 'T';
-    if (ft_strcmp(secname, ".data") == 0)
+    if (strcmp(secname, ".data") == 0)
         return (bind == STB_LOCAL) ? 'd' : 'D';
-    if (ft_strcmp(secname, ".bss") == 0)
+    if (strcmp(secname, ".bss") == 0)
         return (bind == STB_LOCAL) ? 'b' : 'B';
 
     return (bind == STB_LOCAL) ? 'n' : 'N';
@@ -33,9 +33,9 @@ void parse_args(int ac, char **av, t_opt *opts)
 
     for (int i = 1; i < argc; i++) 
 	{
-        if (argv[i][0] == '-') 
+        if (av[i][0] == '-') 
 		{
-            for (int j = 1; argv[i][j]; j++)
+            for (int j = 1; av[i][j]; j++)
 			{
                 switch (argv[i][j])
 				{
@@ -129,7 +129,7 @@ int main(int ac, char **av) {
 	ft_nmprint(nm);
 	if (ac < 2 )
 		return(dprintf(2, ARG_ERR));
-	parse_args(ac, av, &nm->options)
+	parse_args(ac, av, &nm->options);
 	// if (!is_valid_option()) //-a -u or -au 
 	// {
 	// 		if (-r)
