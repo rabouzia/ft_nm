@@ -1,0 +1,6 @@
+{
+	"name": "Debian C Dev",
+	"image": "debian:bookworm",
+	"postCreateCommand": "apt update && apt install -y build-essential valgrind libelf-dev"
+  }
+  

@@ -29,43 +29,60 @@
 #define FSTAT_ERR "fstat error\n"
 #define MMAP_ERR "mmap error\n"
 
-typedef struct s_opt{
-    int opt_a;
-    int opt_r;
-    int opt_g;
-    int opt_u;
-    int opt_p;
-    char *filename;
-} t_opt;
 
-typedef struct s_nm
+typedef struct s_res
 {
-	t_opt options;
     char letter;
     Elf64_Addr addr;
     char *symbol;
     bool defined;
+    struct  s_res *next;
+}               t_res;
+
+typedef struct s_opt
+{
+	bool a;
+	bool r;
+	bool g;
+	bool u;
+	bool p;
+	char *filename;
+}			 t_opt;
+
+typedef struct s_nm
+{
+	t_res *res;
+	t_opt opt;
+	Elf64_Ehdr *elf_hd; // elf header
+	Elf64_Sym *symtab;
+	Elf64_Ehdr *ehdr;
+	Elf64_Shdr *section_headers;
+	Elf64_Shdr *sh;
+	char **section_names;
+	void *fdata;
 	
-    struct  s_nm *next;
-}               t_nm;
-
-
-void	ft_nmaddback(t_nm **head, t_nm *new);
-t_nm	*ft_nmnew(char *symbol, Elf64_Addr addr, char c);
-t_nm	*ft_nmlast(t_nm *head);
-void    ft_check_same(t_nm **nm);
-void	ft_nmclear(t_nm **nm);
-void    ft_nmprint(t_nm *nm);
-void	free_node(t_nm *nm);
-void	remove_node(t_nm *nm, char *to_delete);
-void	remove_last(t_nm *nm);
-void	remove_first(t_nm **nm);
-int	    search_nm(t_nm *nm, char *key);
-bool	delete_node(t_nm **nm, char *to_delete);
-void get_flag(t_nm *nm);
+}			t_nm;
 
 
 
+
+
+
+//##################### LST UTILS #################
+
+int	    search_res(t_res *res, char *key);
+void 	get_flag(t_res *res);
+bool	delete_node(t_res **res, char *to_delete);
+void	ft_resaddback(t_res **head, t_res *new);
+t_res	*ft_resnew(char *symbol, Elf64_Addr addr, char c);
+t_res	*ft_reslast(t_res *head);
+void    ft_check_same(t_res **res);
+void	ft_resclear(t_res **res);
+void    ft_resprint(t_res *res);
+void	free_node(t_res *res);
+void	remove_node(t_res *res, char *to_delete);
+void	remove_last(t_res *res);
+void	remove_first(t_res **res);
 
 // struct stat {
 //     dev_t     st_dev;     /* ID of device containing file */

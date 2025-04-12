@@ -1,6 +1,8 @@
 {
     "files.associations": {
-        "stat.h": "c",
-        "elf.h": "c"
-    }
+		"*.md": "markdown",
+		"stat.h": "c",
+		"elf.h": "c",
+		"ctype.h": "c"
+	}
 }

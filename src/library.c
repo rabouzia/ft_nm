@@ -1,79 +1,79 @@
 #include "ft_nm.h"
 
-void	ft_nmaddback(t_nm **head, t_nm *new)
+void	ft_resaddback(t_res **head, t_res *new)
 {
 	if (!head)
 		return ;
 	if (*head)
-		ft_nmlast(*head)->next = new;
+		ft_reslast(*head)->next = new;
 	else
 		*head = new;
 }
 
-t_nm	*ft_nmnew(char *symbol, Elf64_Addr addr, char c)
+t_res	*ft_resnew(char *symbol, Elf64_Addr addr, char c)
 {
-	t_nm	*nm;
+	t_res	*res;
 
-	nm = malloc(sizeof(t_nm));
-	if (!nm)
+	res = malloc(sizeof(t_res));
+	if (!res)
 		return (NULL);
-	nm->symbol = symbol;
-	nm->addr = addr;
-    nm->letter = c;
-	nm->next = NULL;
-	return (nm);
+	res->symbol = symbol;
+	res->addr = addr;
+    res->letter = c;
+	res->next = NULL;
+	return (res);
 }
 
-t_nm	*ft_nmlast(t_nm *head)
+t_res	*ft_reslast(t_res *head)
 {
 	while (head->next)
 		head = head->next;
 	return (head);
 }
 
-void ft_check_same(t_nm **nm)
+void ft_check_same(t_res **res)
 {
-    (void)nm;
+    (void)res;
 }
 
-void	ft_nmclear(t_nm **nm)
+void	ft_resclear(t_res **res)
 {
-	t_nm	*tmp;
+	t_res	*tmp;
 
-	while ((*nm))
+	while ((*res))
 	{
-		tmp = (*nm)->next;
-		// free((*nm)->symbol);
-		// free((*nm)->value);
-		free((*nm));
-		(*nm) = tmp;
+		tmp = (*res)->next;
+		// free((*res)->symbol);
+		// free((*res)->value);
+		free((*res));
+		(*res) = tmp;
 	}
 }
 
-void ft_nmprint(t_nm *nm)
+void ft_resprint(t_res *res)
 {
-    while(nm)
+    while(res)
     {
         
-		if (nm->addr == 0000000000) 
-			printf("%16c " , ' ');
-		else
-			printf("%016lx " , nm->addr);
-		printf(" %c ",nm->letter);
-		printf("%s\n", nm->symbol);
-            // printf("\n", nm->addr);
-        nm = nm->next;
+		// if (res->addr == 0000000000) 
+		// 	printf("%16c " , ' ');
+		// else
+			printf("%016lx " , res->addr);
+		printf(" %c ",res->letter);
+		printf("%s\n", res->symbol);
+            // printf("\n", res->addr);
+        res = res->next;
     }
 }
 
-int	ft_unset(t_nm **nm, char **arg)
+int	ft_unset(t_res **res, char **arg)
 {
 	int	i;
 
 	i = 1;
 	while (arg[i])
 	{
-		if (!delete_node(nm, arg[i]))
+		if (!delete_node(res, arg[i]))
 			i++;
 		else
 			i++;
@@ -81,70 +81,70 @@ int	ft_unset(t_nm **nm, char **arg)
 	return (1);
 }
 
-bool	delete_node(t_nm **nm, char *to_delete)
+bool	delete_node(t_res **res, char *to_delete)
 {
 	int	flag;
 	int	len = 0;
 
-	flag = search_nm(*nm, to_delete);
+	flag = search_res(*res, to_delete);
 	if (flag == 0)
 		return (0);
 	if (flag == 1)
-		remove_first(nm);
+		remove_first(res);
 	else if (flag == len + 1)
-		remove_last(*nm);
+		remove_last(*res);
 	else
-		remove_node(*nm, to_delete);
+		remove_node(*res, to_delete);
 	return (1);
 }
 
-int	search_nm(t_nm *nm, char *key)
+int	search_res(t_res *res, char *key)
 {
 	int	i;
 
 	i = 1;
-	while (nm)
+	while (res)
 	{
-		if (strcmp(nm->symbol, key) == 0)
+		if (strcmp(res->symbol, key) == 0)
 			return (i);
-		nm = nm->next;
+		res = res->next;
 		i++;
 	}
 	return (0);
 }
 
-void	remove_first(t_nm **nm)
+void	remove_first(t_res **res)
 {
-	t_nm	*second;
-	t_nm	*cur;
-	t_nm	*tmp;
+	t_res	*second;
+	// t_res	*cur;
+	t_res	*tmp;
 
-	cur = *nm;
-	second = (*nm)->next;
-	tmp = (*nm);
-	*nm = second;
+	// cur = *res;
+	second = (*res)->next;
+	tmp = (*res);
+	*res = second;
 	free_node(tmp);
 	return ;
 }
 
-void	remove_last(t_nm *nm)
+void	remove_last(t_res *res)
 {
-	t_nm	*last;
+	t_res	*last;
 
-	last = nm;
+	last = res;
 	while (last->next->next)
 		last = last->next;
-	nm = ft_nmlast(nm);
-	free_node(nm);
+	res = ft_reslast(res);
+	free_node(res);
 	last->next = NULL;
 }
 
-void	remove_node(t_nm *nm, char *to_delete)
+void	remove_node(t_res *res, char *to_delete)
 {
-	t_nm	*tmp;
-	t_nm	*cur;
+	t_res	*tmp;
+	t_res	*cur;
 
-	cur = nm;
+	cur = res;
 	while (cur)
 	{
 		tmp = cur;
@@ -158,31 +158,31 @@ void	remove_node(t_nm *nm, char *to_delete)
 }
 
 
-void	free_node(t_nm *nm)
+void	free_node(t_res *res)
 {
-	free(nm->symbol);
-	free(nm);
+	free(res->symbol);
+	free(res);
 }
 
-int ft_nmlen(t_nm *nm)
+int ft_reslen(t_res *res)
 {
 	int i  = 0;
-	while(nm)
+	while(res)
 	{
 		i++;
-		nm= nm->next;
+		res= res->next;
 	}
 	return i;
 }
 
 
-void get_flag(t_nm *nm)
+void get_flag(t_res *res)
 {
-    while (nm)
+    while (res)
     {
-        if (nm->addr == 0)
-            nm->letter = 'T';
-        nm = nm->next;
+        if (res->addr == 0)
+            res->letter = 'T';
+        res = res->next;
     }
 }
 

@@ -1,43 +1,43 @@
-NAME     =		ft_nm
+# Name of the binary
+NAME     =	ft_nm
 
-DIR 	 =      src/
+# Source and include directories
+DIR      =	src/
+INC_DIR  =	inc/
 
-SRC	     =		src/main.c\
-				src/library.c
+SRC	     =	src/main.c \
+            src/library.c
 
-CC       =	    cc
+OBJ_DIR	 =	obj/
 
-CFLAGS   =	    -Wall -Wextra -Werror -g3 -I./inc 
+# Compiler and flags
+CC       =	cc
+CFLAGS   =	-Wall -Wextra -Werror -g3 -I$(INC_DIR)
+LDFLAGS  =	-lelf
 
-OBJ_DIR	 =	    obj/
+# Source to object mapping
+OBJ      =	$(patsubst src/%.c, $(OBJ_DIR)%.o, $(SRC))
 
-SRCS     =      $(SRC)
+# Rules
+all: $(NAME)
 
-# Adjust the pattern to keep subdirectory structure
-OBJ 	 =      $(patsubst src/%.c, $(OBJ_DIR)%.o, $(SRCS))
+# Compile source files into object files
+$(OBJ_DIR)%.o: src/%.c
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
 
-MAKE_DIR =      mkdir -p
-
-SMAKE	 =      make --no-print-directory
-
-# Ensure all directories are created before compiling object files
-$(OBJ_DIR)%.o:  src/%.c
-				@$(MAKE_DIR) $(dir $@)
-				@$(CC) $(CFLAGS) -c $< -o $@
-
-all:	        $(NAME)
-
-$(NAME):        $(OBJ)
-				@$(CC) $(CFLAGS) $(OBJ) -o $@ -lreadline
+# Link final binary
+$(NAME): $(OBJ)
+	@$(CC) $(CFLAGS) $(OBJ) -o $@ $(LDFLAGS)
 
 clean:
-				@rm -rf $(OBJ_DIR)
-				@echo "\033[1;31m======== object files removed ========\033[0m"
+	@rm -rf $(OBJ_DIR)
+	@echo "\033[1;31m======== object files removed ========\033[0m"
 
-fclean:         clean
-				@$(RM) $(NAME)
-				@echo "\033[1;31m========  executable removed  =======\033[0m"
+fclean: clean
+	@rm -f $(NAME)
+	@echo "\033[1;31m========  executable removed  =======\033[0m"
 
-re:             fclean all
+re: fclean all
 
 .PHONY: clean fclean all re

@@ -1,0 +1,11 @@
+{
+	"name": "Linux Dev",
+	"build": {
+	  "dockerfile": "../Dockerfile"
+	},
+	"workspaceFolder": "/project",
+	"mounts": [
+	  "source=${localWorkspaceFolder},target=/project,type=bind"
+	]
+  }
+  
