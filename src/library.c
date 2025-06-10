@@ -1,5 +1,50 @@
 #include "ft_nm.h"
 
+/*void	remove_first(t_env **env)
+{
+	t_env	*second;
+	t_env	*cur;
+	t_env	*tmp;
+
+	cur = *env;
+	second = (*env)->next;
+	tmp = (*env);
+	*env = second;
+	free_node(tmp);
+	return ;
+}
+
+void	remove_last(t_env *env)
+{
+	t_env	*last;
+
+	last = env;
+	while (last->next->next)
+		last = last->next;
+	env = ft_envlast(env);
+	free_node(env);
+	last->next = NULL;
+}
+
+void	remove_node(t_env *env, char *to_delete)
+{
+	t_env	*tmp;
+	t_env	*cur;
+
+	cur = env;
+	while (cur)
+	{
+		tmp = cur;
+		cur = cur->next;
+		if (ft_strcmp(cur->key, to_delete) == 0)
+			break ;
+	}
+	tmp->next = (cur)->next;
+	free_node(cur);
+	return ;
+}*/
+
+
 void	ft_resaddback(t_res **head, t_res *new)
 {
 	if (!head)
@@ -55,9 +100,9 @@ void ft_resprint(t_res *res)
     while(res)
     {
         
-		// if (res->addr == 0000000000) 
-		// 	printf("%16c " , ' ');
-		// else
+		if (res->letter == 'U') 
+			printf("%16c " , ' ');
+		else 
 			printf("%016lx " , res->addr);
 		printf(" %c ",res->letter);
 		printf("%s\n", res->symbol);
@@ -202,3 +247,22 @@ void ft_putstr_fd(char *str)
 		i++;
 	}
 }
+
+int	ft_strncmp(const char *s1, const char *s2, size_t n)
+{
+	size_t	i;
+
+	if (n == 0)
+		return (0);
+	i = 0;
+	while (s1[i] == s2[i] && s1[i] != '\0')
+	{
+		if (i < (n - 1))
+			i++;
+		else
+			return (0);
+	}
+	return ((unsigned char)s1[i] - (unsigned char) s2[i]);
+}
+
+

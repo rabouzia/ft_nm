@@ -84,6 +84,11 @@ void	remove_node(t_res *res, char *to_delete);
 void	remove_last(t_res *res);
 void	remove_first(t_res **res);
 
+
+//##################### LIBRARY #################
+
+int	ft_strncmp(const char *s1, const char *s2, size_t n);
+
 // struct stat {
 //     dev_t     st_dev;     /* ID of device containing file */
 //     ino_t     st_ino;     /* inode number */

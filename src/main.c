@@ -182,7 +182,6 @@ int parse_elf(t_nm * nm)
 			}
 		}
 	}
-	ft_resprint(nm->res);
 	return 1;
 }
 
@@ -216,6 +215,22 @@ int check_elf(t_nm *nm)
 	return 1;
 }
 
+void clean_double(t_res *res)
+{
+	t_res *tmp;
+	while (res)
+	{
+		tmp = res->next;
+		while(tmp)
+		{	
+			if (ft_strncmp(res->symbol, tmp->symbol, strlen(res->symbol)) == 0)
+				remove_node(res, tmp->symbol);
+			res = res->next;
+		}
+		res = res->next;
+	}
+	
+}
 
 int main(int ac, char **av) 
 {
@@ -226,6 +241,15 @@ int main(int ac, char **av)
 	parse_args(ac, av, &nm.opt);
 	check_elf(&nm);
 	parse_elf(&nm);
+	clean_double(nm.res);
+	ft_resprint(nm.res);
 	ft_resclear(&nm.res);
 	free(nm.opt.filename);	
 }
+
+
+
+
+/*
+
+*/
