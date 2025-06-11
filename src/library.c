@@ -121,20 +121,16 @@ void ft_resprint(t_res *res)
 			res = res->next;
 			continue;
 		}
-		if (res->letter != 'U' && res->addr == 0) 
-		{
-			res = res->next;
-			continue;
-		}
-		if (res->letter == 'U') 
-			printf("%16c ", ' ');
+		if (res->letter == 'U' || res->addr == 0) 
+			printf("%16c", ' ');
 		else 
-			printf("%016lx ", res->addr);
+			printf("%016lx", res->addr);
 		printf(" %c ", res->letter);
 		printf("%s\n", res->symbol);
 		res = res->next;
 	}
 }
+
 
 
 int	ft_unset(t_res **res, char **arg)

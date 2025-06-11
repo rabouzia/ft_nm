@@ -5,23 +5,30 @@ char get_symbol_letter(Elf64_Sym sym, Elf64_Shdr *sections) {
     unsigned char bind = ELF64_ST_BIND(sym.st_info);
     unsigned char type = ELF64_ST_TYPE(sym.st_info);
     Elf64_Half shndx = sym.st_shndx;
+    char c = '?';
 
-	if (bind == STB_WEAK) {
-	if (sym.st_shndx == SHN_UNDEF)
-		return (type == STT_OBJECT) ? 'v' : 'w';
-	else
-		return (type == STT_OBJECT) ? 'V' : 'W';
-	}
+    // Cas des symboles faibles (weak)
+    if (bind == STB_WEAK) {
+        if (shndx == SHN_UNDEF)
+            return (type == STT_OBJECT) ? 'v' : 'w';
+        else
+            return (type == STT_OBJECT) ? 'V' : 'W';
+    }
+
+    // Cas des symboles particuliers
     if (shndx == SHN_UNDEF)
         return 'U';
     if (shndx == SHN_ABS)
         return 'A';
     if (shndx == SHN_COMMON)
         return 'C';
-    if (shndx == SHN_UNDEF || shndx >= SHN_LORESERVE)
+
+    // Section invalide
+    if (shndx >= SHN_LORESERVE)
         return '?';
+
+    // Section associée
     Elf64_Shdr sec = sections[shndx];
-    char c = '?';
     if (sec.sh_type == SHT_NOBITS && (sec.sh_flags & SHF_ALLOC) && (sec.sh_flags & SHF_WRITE))
         c = 'B'; // .bss
     else if (sec.sh_flags & SHF_EXECINSTR)
@@ -29,11 +36,15 @@ char get_symbol_letter(Elf64_Sym sym, Elf64_Shdr *sections) {
     else if ((sec.sh_flags & SHF_ALLOC) && (sec.sh_flags & SHF_WRITE))
         c = 'D'; // .data
     else if (sec.sh_flags & SHF_ALLOC)
-        c = 'R'; // .rodata or other readonly sections
-    if (bind == STB_LOCAL && c != '?')
-        c = tolower(c);
+        c = 'R'; // .rodata ou autre section readonly
+
+    // Minuscule si symbole local
+    if ((bind == STB_LOCAL || bind == STB_WEAK) && c != '?')
+    c = tolower(c);
+
     return c;
 }
+
 
 char	*ft_strdup(const char *src)
 {
@@ -149,26 +160,7 @@ void swap_res(t_res *a, t_res *b) {
 }
 
 int compare_symbols(const char *s1, const char *s2) {
-	const char *full1 = s1;
-	const char *full2 = s2;
-
-	// Skip underscores for comparison
-	while (*s1 == '_') s1++;
-	while (*s2 == '_') s2++;
-
-	// Compare ASCII-wise (case-sensitive)
-	while (*s1 && *s2) {
-		if (*s1 != *s2)
-			return (unsigned char)*s1 - (unsigned char)*s2;
-		s1++;
-		s2++;
-	}
-
-	if (*s1 || *s2)
-		return (unsigned char)*s1 - (unsigned char)*s2;
-
-	// If stripped names equal, fallback to full string to break ties
-	return strcmp(full1, full2);
+	return strcmp(s1, s2); // tri exact ASCII, pas de strip de underscore
 }
 
 
@@ -244,8 +236,8 @@ int parse_elf(t_nm * nm)
 							continue;
 					if (nm->opt.g && ELF64_ST_BIND(nm->symtab[j].st_info) != STB_GLOBAL)
 						continue;
-					if (ELF64_ST_TYPE(nm->symtab[j].st_info) == STT_FILE)
-  						continue;
+					// if (ELF64_ST_TYPE(nm->symtab[j].st_info) == STT_FILE)
+  					// 	continue;
 					if (nm->opt.u && nm->symtab[j].st_shndx != SHN_UNDEF)
 						continue;
 					ft_resaddback(&nm->res, ft_resnew(name, nm->symtab[j].st_value, type));
@@ -352,34 +344,37 @@ char *extract_str(const char *s)
 
 void clean_double(t_res **res)
 {
-	t_res *tmp = *res;
+	t_res *cur = *res;
 
-	while (tmp)
+	while (cur)
 	{
-		if (strchr(tmp->symbol, '@'))
+		// Si le symbole est versionné
+		if (strchr(cur->symbol, '@'))
 		{
-			char *base = extract_str(tmp->symbol);
+			char *base = extract_str(cur->symbol);
 			if (!base)
 				return;
 
-			t_res *cur = *res;
-			while (cur)
+			t_res *cand = *res;
+			while (cand)
 			{
-				if (!strchr(cur->symbol, '@') &&
-					strcmp(cur->symbol, base) == 0 &&
-					cur->trash == 0 &&
-					(cur->letter == 'W' || cur->letter == 'w' || cur->letter == 'U')) // <- safe
+				// Cible : même nom sans version + type faible ou undefined
+				if (!strchr(cand->symbol, '@') &&
+					strcmp(cand->symbol, base) == 0 &&
+					(cand->letter == 'W' || cand->letter == 'w' || cand->letter == 'U') &&
+					cand->trash == 0)
 				{
-					cur->trash = 1;
+					cand->trash = 1;
 					break;
 				}
-				cur = cur->next;
+				cand = cand->next;
 			}
 			free(base);
 		}
-		tmp = tmp->next;
+		cur = cur->next;
 	}
 }
+
 
 
 
