@@ -36,7 +36,8 @@ typedef struct s_res
     Elf64_Addr addr;
     char *symbol;
     bool defined;
-    struct  s_res *next;
+  	bool trash;
+	struct  s_res *next;
 }               t_res;
 
 typedef struct s_opt
@@ -83,7 +84,7 @@ void	free_node(t_res *res);
 void	remove_node(t_res *res, char *to_delete);
 void	remove_last(t_res *res);
 void	remove_first(t_res **res);
-
+void 	ft_nmsort(t_res* head);
 
 //##################### LIBRARY #################
 

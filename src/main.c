@@ -6,16 +6,18 @@ char get_symbol_letter(Elf64_Sym sym, Elf64_Shdr *sections) {
     unsigned char type = ELF64_ST_TYPE(sym.st_info);
     Elf64_Half shndx = sym.st_shndx;
 
+	if (bind == STB_WEAK) {
+	if (sym.st_shndx == SHN_UNDEF)
+		return (type == STT_OBJECT) ? 'v' : 'w';
+	else
+		return (type == STT_OBJECT) ? 'V' : 'W';
+	}
     if (shndx == SHN_UNDEF)
         return 'U';
     if (shndx == SHN_ABS)
         return 'A';
     if (shndx == SHN_COMMON)
         return 'C';
-    if (bind == STB_WEAK)
-	{
-        return (type == STT_OBJECT) ? 'v' : 'w';
-    }
     if (shndx == SHN_UNDEF || shndx >= SHN_LORESERVE)
         return '?';
     Elf64_Shdr sec = sections[shndx];
@@ -110,27 +112,86 @@ int ignore_underscore(const char* a, const char* b)
     }
     return a[i] - b[j];
 }
-void ft_nmsort(t_res* head) 
-{
-    if (!head) return;
+// void ft_nmsort(t_res* head) 
+// {
+//     if (!head) return;
+//     int swapped;
+//     t_res* ptr;
+//     do {
+//         swapped = 0;
+//         ptr = head;
+//         while (ptr->next) 
+// 		{
+//             if (ignore_underscore(ptr->symbol, ptr->next->symbol) > 0) 
+// 			{
+//                 char* tmp = ptr->symbol;
+//                 ptr->symbol = ptr->next->symbol;
+//                 ptr->next->symbol = tmp;
+//                 swapped = 1;
+//             }
+//             ptr = ptr->next;
+//         }
+//     } while (swapped);
+// }
+
+void swap_res(t_res *a, t_res *b) {
+    char *tmp_symbol = a->symbol;
+    char tmp_letter = a->letter;
+    uint64_t tmp_value = a->addr;
+
+    a->symbol = b->symbol;
+    a->letter = b->letter;
+    a->addr = b->addr;
+
+    b->symbol = tmp_symbol;
+    b->letter = tmp_letter;
+    b->addr = tmp_value;
+}
+
+int compare_symbols(const char *s1, const char *s2) {
+	const char *full1 = s1;
+	const char *full2 = s2;
+
+	// Skip underscores for comparison
+	while (*s1 == '_') s1++;
+	while (*s2 == '_') s2++;
+
+	// Compare ASCII-wise (case-sensitive)
+	while (*s1 && *s2) {
+		if (*s1 != *s2)
+			return (unsigned char)*s1 - (unsigned char)*s2;
+		s1++;
+		s2++;
+	}
+
+	if (*s1 || *s2)
+		return (unsigned char)*s1 - (unsigned char)*s2;
+
+	// If stripped names equal, fallback to full string to break ties
+	return strcmp(full1, full2);
+}
+
+
+
+void ft_nmsort(t_res *head) {
+    if (!head || !head->next) return;
+
     int swapped;
-    t_res* ptr;
+    t_res *ptr;
+
     do {
         swapped = 0;
         ptr = head;
-        while (ptr->next) 
-		{
-            if (ignore_underscore(ptr->symbol, ptr->next->symbol) > 0) 
-			{
-                char* tmp = ptr->symbol;
-                ptr->symbol = ptr->next->symbol;
-                ptr->next->symbol = tmp;
-                swapped = 1;
-            }
+        while (ptr->next) {
+            if (compare_symbols(ptr->symbol, ptr->next->symbol) > 0) {
+   				swap_res(ptr, ptr->next);
+   				swapped = 1;
+			}			
             ptr = ptr->next;
         }
     } while (swapped);
 }
+
 
 /*
 -a     Display all symbol table entries, including those inserted for use by debuggers.
@@ -150,9 +211,15 @@ int parse_elf(t_nm * nm)
 	nm->section_headers = (Elf64_Shdr *)((char *)nm->fdata + nm->ehdr->e_shoff);
 	nm->section_names = malloc(sizeof(char *) * nm->ehdr->e_shnum);
 	
-	for (int i = 0; i < nm->ehdr ->e_shnum; i++)
+	
+	for (int i = 0; i < nm->ehdr->e_shnum; i++)
 	{
+		if (nm->ehdr->e_shstrndx >= nm->ehdr->e_shnum) {
+			fprintf(stderr, "Invalid section header string table index\n");
+			return 0;
+		}
 		nm->sh = &nm->section_headers[i];
+		
 		char *shstrtab = nm->fdata + nm->section_headers[nm->ehdr->e_shstrndx].sh_offset;
 		nm->section_names[i] = shstrtab + nm->sh->sh_name;
 		if (nm->sh->sh_type == SHT_SYMTAB || nm->sh->sh_type == SHT_DYNSYM) 
@@ -173,8 +240,12 @@ int parse_elf(t_nm * nm)
 						if (name[0] == '\0') continue;
 						if (name[0] == '$') continue;
 					}
+					if (ELF64_ST_TYPE(nm->symtab[j].st_info) == STT_SECTION || ELF64_ST_TYPE(nm->symtab[j].st_info) == STT_FILE)
+							continue;
 					if (nm->opt.g && ELF64_ST_BIND(nm->symtab[j].st_info) != STB_GLOBAL)
 						continue;
+					if (ELF64_ST_TYPE(nm->symtab[j].st_info) == STT_FILE)
+  						continue;
 					if (nm->opt.u && nm->symtab[j].st_shndx != SHN_UNDEF)
 						continue;
 					ft_resaddback(&nm->res, ft_resnew(name, nm->symtab[j].st_value, type));
@@ -215,22 +286,132 @@ int check_elf(t_nm *nm)
 	return 1;
 }
 
-void clean_double(t_res *res)
+// void clean_double(t_res **res)
+// {
+// 	t_res *tmp;
+// 	tmp = *res;
+// 	while (tmp && tmp->letter == 'U')
+// 	{
+// 		(*res) = tmp->next;
+// 		while(*res && (*res)->letter == 'U')
+// 		{	
+// 			printf("node [%s]\n", tmp->symbol);
+// 			printf("to delete [%s]\n", (*res)->symbol);
+// 			if ( strstr(tmp->symbol,(*res)->symbol) && strstr("@GLIBC_2.17",tmp->symbol))
+// 				// ft_strncmp() == 0)
+// 			{	
+// 				printf("----------------- inside if -------------------\n");
+// 				delete_node((res), (*res)->symbol);
+// 			}
+// 			(*res) = (*res)->next;
+// 		}
+// 		tmp = tmp->next;
+// 	}
+	
+// }
+
+// char *extract_str(const char *s)
+// {
+// 	size_t len = 0;
+// 	while (s[len] && s[len] != '@')
+// 		len++;
+
+// 	char *res = malloc(len + 1);
+// 	if (!res)
+// 		return NULL;
+// 	strncpy(res, s, len);
+// 	res[len] = '\0';
+// 	return res;
+// }
+
+
+t_res *	search_word(t_res *res, char *key)
 {
-	t_res *tmp;
 	while (res)
 	{
-		tmp = res->next;
-		while(tmp)
-		{	
-			if (ft_strncmp(res->symbol, tmp->symbol, strlen(res->symbol)) == 0)
-				remove_node(res, tmp->symbol);
-			res = res->next;
-		}
+		if (strcmp(res->symbol, key) == 0)
+			return (res);
 		res = res->next;
 	}
-	
+	return (NULL);
 }
+
+char *extract_str(const char *s)
+{
+	size_t len = 0;
+	while (s[len] && s[len] != '@')
+		len++;
+
+	char *res = malloc(len + 1);
+	if (!res)
+		return NULL;
+	strncpy(res, s, len);
+	res[len] = '\0';
+	return res;
+}
+
+void clean_double(t_res **res)
+{
+	t_res *tmp = *res;
+
+	while (tmp)
+	{
+		if (strchr(tmp->symbol, '@'))
+		{
+			char *base = extract_str(tmp->symbol);
+			if (!base)
+				return;
+
+			t_res *cur = *res;
+			while (cur)
+			{
+				if (!strchr(cur->symbol, '@') &&
+					strcmp(cur->symbol, base) == 0 &&
+					cur->trash == 0 &&
+					(cur->letter == 'W' || cur->letter == 'w' || cur->letter == 'U')) // <- safe
+				{
+					cur->trash = 1;
+					break;
+				}
+				cur = cur->next;
+			}
+			free(base);
+		}
+		tmp = tmp->next;
+	}
+}
+
+
+
+void remove_double(t_res **res)
+{
+	t_res *cur = *res;
+	t_res *prev = NULL;
+
+	while (cur)
+	{
+		if (cur->trash)
+		{
+			if (prev)
+				prev->next = cur->next;
+			else
+				*res = cur->next;
+
+			t_res *to_free = cur;
+			cur = cur->next;
+			// free(to_free->symbol);
+			free(to_free);
+		}
+		else
+		{
+			prev = cur;
+			cur = cur->next;
+		}
+	}
+}
+
+
+
 
 int main(int ac, char **av) 
 {
@@ -241,7 +422,12 @@ int main(int ac, char **av)
 	parse_args(ac, av, &nm.opt);
 	check_elf(&nm);
 	parse_elf(&nm);
-	clean_double(nm.res);
+	// ft_resprint(nm.res);
+	// printf("------------------\n");
+	ft_nmsort(nm.res);
+	clean_double(&nm.res);
+	ft_check_same(&nm.res);
+	remove_double(&nm.res);
 	ft_resprint(nm.res);
 	ft_resclear(&nm.res);
 	free(nm.opt.filename);	
@@ -251,5 +437,5 @@ int main(int ac, char **av)
 
 
 /*
-
+	- check the case of adding char to the binary
 */

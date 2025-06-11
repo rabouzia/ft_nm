@@ -65,6 +65,7 @@ t_res	*ft_resnew(char *symbol, Elf64_Addr addr, char c)
 	res->symbol = symbol;
 	res->addr = addr;
     res->letter = c;
+	res->trash = 0;
 	res->next = NULL;
 	return (res);
 }
@@ -78,7 +79,23 @@ t_res	*ft_reslast(t_res *head)
 
 void ft_check_same(t_res **res)
 {
-    (void)res;
+	t_res *tmp = *res;
+	while (tmp)
+	{
+		t_res *cur = tmp->next;
+		while (cur)
+		{
+			if (!cur->trash &&
+				strcmp(tmp->symbol, cur->symbol) == 0 &&
+				tmp->addr == cur->addr &&
+				tmp->letter == cur->letter)
+			{
+				cur->trash = 1;
+			}
+			cur = cur->next;
+		}
+		tmp = tmp->next;
+	}
 }
 
 void	ft_resclear(t_res **res)
@@ -97,19 +114,28 @@ void	ft_resclear(t_res **res)
 
 void ft_resprint(t_res *res)
 {
-    while(res)
-    {
-        
+	while(res)
+	{
+		if (res->trash)
+		{
+			res = res->next;
+			continue;
+		}
+		if (res->letter != 'U' && res->addr == 0) 
+		{
+			res = res->next;
+			continue;
+		}
 		if (res->letter == 'U') 
-			printf("%16c " , ' ');
+			printf("%16c ", ' ');
 		else 
-			printf("%016lx " , res->addr);
-		printf(" %c ",res->letter);
+			printf("%016lx ", res->addr);
+		printf(" %c ", res->letter);
 		printf("%s\n", res->symbol);
-            // printf("\n", res->addr);
-        res = res->next;
-    }
+		res = res->next;
+	}
 }
+
 
 int	ft_unset(t_res **res, char **arg)
 {
