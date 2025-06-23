@@ -288,3 +288,20 @@ int	ft_strncmp(const char *s1, const char *s2, size_t n)
 }
 
 
+char	*ft_strdup(const char *src)
+{
+	int		i;
+	char	*r;
+
+	r = (char *)malloc(sizeof(char) * (strlen(src) + 1));
+	if (!r)
+		return (NULL);
+	i = 0;
+	while (src[i])
+	{
+		r[i] = src[i];
+		i++;
+	}
+	r[i] = 0;
+	return (r);
+}

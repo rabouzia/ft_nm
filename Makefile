@@ -6,7 +6,10 @@ DIR      =	src/
 INC_DIR  =	inc/
 
 SRC	     =	src/main.c \
-            src/library.c
+            src/library.c \
+            src/sort.c \
+            src/parser.c \
+
 
 OBJ_DIR	 =	obj/
 

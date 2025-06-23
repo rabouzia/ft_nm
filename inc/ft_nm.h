@@ -12,6 +12,9 @@
 
 #pragma once
 
+
+//################ LIB ################
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -24,11 +27,31 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+
+//################ STR MACRO ################
+
 #define OP_ERR "Failed to open file\n"
 #define ARG_ERR "Usage ./ft_nm [-flag] <binary>\n"
 #define FSTAT_ERR "fstat error\n"
 #define MMAP_ERR "mmap error\n"
+#define NO_ELF "Not an ELF file\n"
+#define CHECK_ERR "Error: Invalid ELF file\n"
+#define TOO_MANY_FILES "Erreur : trop de fichiers spécifiés.\n"
+#define NO_FILE "Erreur : aucun fichier spécifié.\n"
+#define UKN_OPT "Erreur : option inconnue.\n"
+#define PARSE_ERR "parse err"
+#define ELF_ERR "elf rrr"
 
+
+//################ FCT MACRO ################
+
+#define CHECK_OFFSET(ptr, offset) \
+	if ((char *) ptr + offset > (char* ) nm->fdata + nm->fsize) { \
+		fprintf(stderr, "Error: offset out of bounds\n"); \
+		exit(EXIT_FAILURE); \
+	}
+
+//################ STRUCT ################
 
 typedef struct s_res
 {
@@ -50,24 +73,35 @@ typedef struct s_opt
 	char *filename;
 }			 t_opt;
 
+typedef struct s_elf
+{
+	void *ehdr;          // Elf32_Ehdr ou Elf64_Ehdr
+	void *shdr;          // Elf32_Shdr ou Elf64_Shdr
+	void *symtab;        // Elf32_Sym ou Elf64_Sym
+	void *strtab_section;
+	char *strtab;
+	int symtab_index;
+	size_t symbols_nb;
+	int is_64;
+} t_elf;
+
 typedef struct s_nm
 {
+	int fd;
+	size_t fsize;
 	t_res *res;
 	t_opt opt;
-	Elf64_Ehdr *elf_hd; // elf header
-	Elf64_Sym *symtab;
-	Elf64_Ehdr *ehdr;
-	Elf64_Shdr *section_headers;
-	Elf64_Shdr *sh;
-	char **section_names;
+	t_elf elf;
 	void *fdata;
-	
 }			t_nm;
 
 
 
+//##################### PARSER #################
 
-
+char get_symbol_letter(Elf64_Sym sym, Elf64_Shdr *sections);
+int parse_args(int ac, char **av, t_nm *nm);
+void ft_nmsort(t_res *head);
 
 //##################### LST UTILS #################
 
@@ -85,6 +119,8 @@ void	remove_node(t_res *res, char *to_delete);
 void	remove_last(t_res *res);
 void	remove_first(t_res **res);
 void 	ft_nmsort(t_res* head);
+char	*ft_strdup(const char *src);
+void ft_clean(t_nm *nm, char *msg);
 
 //##################### LIBRARY #################
 
