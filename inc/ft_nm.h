@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ft_nm.h                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ramzerk <ramzerk@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/29 00:29:40 by ramzerk           #+#    #+#             */
-/*   Updated: 2025/04/11 22:56:37 by ramzerk          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 
@@ -36,12 +24,11 @@
 #define MMAP_ERR "mmap error\n"
 #define NO_ELF "Not an ELF file\n"
 #define CHECK_ERR "Error: Invalid ELF file\n"
-#define TOO_MANY_FILES "Erreur : trop de fichiers spécifiés.\n"
 #define NO_FILE "Erreur : aucun fichier spécifié.\n"
 #define UKN_OPT "Erreur : option inconnue.\n"
 #define PARSE_ERR "parse err"
 #define ELF_ERR "elf rrr"
-
+#define ARG_MAX 2097152
 
 //################ FCT MACRO ################
 
@@ -55,6 +42,7 @@
 
 typedef struct s_res
 {
+	char *filename;
     char letter;
     Elf64_Addr addr;
     char *symbol;
@@ -70,7 +58,6 @@ typedef struct s_opt
 	bool g;
 	bool u;
 	bool p;
-	char *filename;
 }			 t_opt;
 
 typedef struct s_elf
@@ -87,9 +74,12 @@ typedef struct s_elf
 
 typedef struct s_nm
 {
+	int ac;
+	char **av;
 	int fd;
 	size_t fsize;
 	t_res *res;
+	bool is_opt;
 	t_opt opt;
 	t_elf elf;
 	void *fdata;
@@ -99,9 +89,12 @@ typedef struct s_nm
 
 //##################### PARSER #################
 
-char get_symbol_letter(Elf64_Sym sym, Elf64_Shdr *sections);
-int parse_args(int ac, char **av, t_nm *nm);
+char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections);
+char get_symbol_letter32(Elf32_Sym sym, Elf32_Shdr *sections);
 void ft_nmsort(t_res *head);
+bool info_clean(t_nm *nm);
+int check_elf(t_nm *nm, char *av);
+int ignore_underscore(const char* a, const char* b);
 
 //##################### LST UTILS #################
 
@@ -113,15 +106,16 @@ t_res	*ft_resnew(char *symbol, Elf64_Addr addr, char c);
 t_res	*ft_reslast(t_res *head);
 void    ft_check_same(t_res **res);
 void	ft_resclear(t_res **res);
-void    ft_resprint(t_res *res);
+void    ft_resprint(t_nm *res, int ac);
 void	free_node(t_res *res);
 void	remove_node(t_res *res, char *to_delete);
 void	remove_last(t_res *res);
 void	remove_first(t_res **res);
 void 	ft_nmsort(t_res* head);
 char	*ft_strdup(const char *src);
-void ft_clean(t_nm *nm, char *msg);
-
+void ft_end(t_nm *nm, char *msg);
+void ft_clean(t_nm *nm);
+int check_opt(char *av, t_opt *opt);
 //##################### LIBRARY #################
 
 int	ft_strncmp(const char *s1, const char *s2, size_t n);

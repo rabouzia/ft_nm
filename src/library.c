@@ -110,23 +110,35 @@ void	ft_resclear(t_res **res)
 		free((*res));
 		(*res) = tmp;
 	}
+	free((*res)->filename);
 }
 
-void ft_resprint(t_res *res)
+void ft_resprint(t_nm *nm, int ac)
 {
-	while(res)
+	t_res *res = nm->res;
+	if ((ac > 2 && !nm->is_opt) || (ac > 3 && nm->is_opt)) 
+		printf("\n%s:\n", res->filename);
+	while (res)
 	{
 		if (res->trash)
 		{
 			res = res->next;
 			continue;
 		}
-		if (res->letter == 'U' || res->addr == 0) 
-			printf("%16c", ' ');
+		if (res->letter == 'U' || res->letter == 'w' || res->addr == 0) 
+		{	if (nm->elf.is_64)
+				printf("%16c", ' ');
+			else
+				printf("%8c", ' ');
+		}
 		else 
-			printf("%016lx", res->addr);
-		printf(" %c ", res->letter);
-		printf("%s\n", res->symbol);
+		{	
+			if (nm->elf.is_64)
+				printf("%016lx", res->addr);
+			else
+				printf("%08x", (unsigned int)res->addr);	
+		}
+		printf(" %c %s\n", res->letter, res->symbol);
 		res = res->next;
 	}
 }
