@@ -110,14 +110,51 @@ void	ft_resclear(t_res **res)
 		free((*res));
 		(*res) = tmp;
 	}
-	free((*res)->filename);
+	if ((*res)->filename)
+		free((*res)->filename);
 }
 
+// void ft_resprint(t_nm *nm, int ac)
+// {
+// 	t_res *res = nm->res;
+// 	if ((ac > 2 && !nm->is_opt) || (ac > 3 && nm->is_opt)) 
+// 		printf("\n%s:\n", res->filename);
+// 	while (res)
+// 	{
+// 		if (res->trash)
+// 		{
+// 			res = res->next;
+// 			continue;
+// 		}
+// 		if (res->letter == 'U' || res->letter == 'w') 
+// 		{	if (nm->elf.is_64)
+// 				printf("%16c", ' ');
+// 			else
+// 				printf("%8c", ' ');
+// 		}
+// 		else 
+// 		{	
+// 			if (nm->elf.is_64)
+// 				printf("%016lx", res->addr);
+// 			else
+// 				printf("%08x", (unsigned int)res->addr);	
+// 		}
+// 		printf(" %c %s\n", res->letter, res->symbol);
+// 		res = res->next;
+// 	}
+// }
 void ft_resprint(t_nm *nm, int ac)
 {
 	t_res *res = nm->res;
-	if ((ac > 2 && !nm->is_opt) || (ac > 3 && nm->is_opt)) 
-		printf("\n%s:\n", res->filename);
+	t_res *printable = res;
+
+	// Sauter les trash au début pour éviter d'utiliser filename sur un node supprimé
+	while (printable && printable->trash)
+		printable = printable->next;
+
+	if (printable && ((ac > 2 && !nm->is_opt) || (ac > 3 && nm->is_opt)))
+		printf("\n%s:\n", printable->filename);
+
 	while (res)
 	{
 		if (res->trash)
@@ -125,8 +162,9 @@ void ft_resprint(t_nm *nm, int ac)
 			res = res->next;
 			continue;
 		}
-		if (res->letter == 'U' || res->letter == 'w' || res->addr == 0) 
-		{	if (nm->elf.is_64)
+		if (res->letter == 'U' || res->letter == 'w') 
+		{	
+			if (nm->elf.is_64)
 				printf("%16c", ' ');
 			else
 				printf("%8c", ' ');

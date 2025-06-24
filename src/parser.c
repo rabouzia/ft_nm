@@ -4,53 +4,11 @@ char get_symbol_letter32(Elf32_Sym sym, Elf32_Shdr *sections)
 {
     unsigned char bind = ELF32_ST_BIND(sym.st_info);
     unsigned char type = ELF32_ST_TYPE(sym.st_info);
-    // unsigned char visibility = ELF32_ST_VISIBILITY(sym.st_other);
     Elf32_Half shndx = sym.st_shndx;
 
-    if (shndx == SHN_UNDEF)
-        return (bind == STB_WEAK) ? ((type == STT_OBJECT) ? 'v' : 'w') : 'U';
+    if (ELF32_ST_TYPE(sym.st_info) == STT_GNU_IFUNC)
+        return 'i';
 
-    if (shndx == SHN_ABS)
-        return (bind == STB_LOCAL) ? 'a' : 'A';
-
-    if (shndx == SHN_COMMON)
-        return 'C';
-
-    if (bind == STB_WEAK)
-        return (type == STT_OBJECT) ? 'V' : 'W';
-
-    // if (type == STT_OBJECT && bind == STB_GLOBAL)
-    //     return 'D';
-
-    // if (visibility == STV_HIDDEN && shndx != SHN_UNDEF)
-    //     return 'h';
-
-    Elf32_Shdr section = sections[shndx];
-    Elf32_Word flags = section.sh_flags;
-    Elf32_Word shtype = section.sh_type;
-
-    if (shtype == SHT_NOBITS && (flags & SHF_ALLOC) && (flags & SHF_WRITE))
-        return (bind == STB_LOCAL) ? 'b' : 'B';
-
-    if ((flags & SHF_ALLOC) && (flags & SHF_WRITE))
-        return (bind == STB_LOCAL) ? 'd' : 'D';
-
-    if ((flags & SHF_ALLOC) && (flags & SHF_EXECINSTR))
-        return (bind == STB_LOCAL) ? 't' : 'T';
-
-    if ((flags & SHF_ALLOC))
-        return (bind == STB_LOCAL) ? 'r' : 'R';
-
-    return '?';
-}
-
-char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections) {
-    unsigned char bind = ELF64_ST_BIND(sym.st_info);
-    unsigned char type = ELF64_ST_TYPE(sym.st_info);
-    Elf64_Half shndx = sym.st_shndx;
-    char c = '?';
-
-    // Cas des symboles faibles (weak)
     if (bind == STB_WEAK) {
         if (shndx == SHN_UNDEF)
             return (type == STT_OBJECT) ? 'v' : 'w';
@@ -58,35 +16,82 @@ char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections) {
             return (type == STT_OBJECT) ? 'V' : 'W';
     }
 
-    // Cas des symboles particuliers
     if (shndx == SHN_UNDEF)
         return 'U';
     if (shndx == SHN_ABS)
-        return 'a';
+        return (bind == STB_LOCAL) ? 'a' : 'A';
     if (shndx == SHN_COMMON)
         return 'C';
-
-    // Section invalide
     if (shndx >= SHN_LORESERVE)
         return '?';
 
-    // Section associée
-    Elf64_Shdr sec = sections[shndx];
-    if (sec.sh_type == SHT_NOBITS && (sec.sh_flags & SHF_ALLOC) && (sec.sh_flags & SHF_WRITE))
-        c = 'B'; // .bss
-    else if (sec.sh_flags & SHF_EXECINSTR)
-        c = 'T'; // .text
-    else if ((sec.sh_flags & SHF_ALLOC) && (sec.sh_flags & SHF_WRITE))
-        c = 'D'; // .data
-    else if (sec.sh_flags & SHF_ALLOC)
-        c = 'R'; // .rodata ou autre section readonly
+    Elf32_Shdr sec = sections[shndx];
+    Elf32_Word flags = sec.sh_flags;
+    Elf32_Word type_sec = sec.sh_type;
 
-    // Minuscule si symbole local
-    if ((bind == STB_LOCAL || bind == STB_WEAK) && c != '?')
-    c = tolower(c);
+    if (type_sec == SHT_NOBITS && (flags & SHF_ALLOC) && (flags & SHF_WRITE))
+        return (bind == STB_LOCAL) ? 'b' : 'B';
+    if ((flags & SHF_ALLOC) && (flags & SHF_WRITE))
+        return (bind == STB_LOCAL) ? 'd' : 'D';
+    if (flags & SHF_EXECINSTR)
+        return (bind == STB_LOCAL) ? 't' : 'T';
+    if ((flags & SHF_ALLOC) && !(flags & SHF_WRITE)) {
+        if (type == STT_OBJECT && bind == STB_LOCAL)
+            return 'r';
+        return (bind == STB_LOCAL) ? 'r' : 'R';
+    }
 
-    return c;
+    return '?';
 }
+
+
+
+
+char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections)
+{
+    unsigned char bind = ELF64_ST_BIND(sym.st_info);
+    unsigned char type = ELF64_ST_TYPE(sym.st_info);
+    Elf64_Half shndx = sym.st_shndx;
+
+    if (ELF64_ST_TYPE(sym.st_info) == STT_GNU_IFUNC)
+        return 'i';
+
+    if (bind == STB_WEAK) {
+        if (shndx == SHN_UNDEF)
+            return (type == STT_OBJECT) ? 'v' : 'w';
+        else
+            return (type == STT_OBJECT) ? 'V' : 'W';
+    }
+
+    if (shndx == SHN_UNDEF)
+        return 'U';
+    if (shndx == SHN_ABS)
+        return (bind == STB_LOCAL) ? 'a' : 'A';
+    if (shndx == SHN_COMMON)
+        return 'C';
+    if (shndx >= SHN_LORESERVE)
+        return '?';
+
+    Elf64_Shdr sec = sections[shndx];
+    Elf64_Xword flags = sec.sh_flags;
+    Elf64_Word type_sec = sec.sh_type;
+
+    if (type_sec == SHT_NOBITS && (flags & SHF_ALLOC) && (flags & SHF_WRITE))
+        return (bind == STB_LOCAL) ? 'b' : 'B';
+    if ((flags & SHF_ALLOC) && (flags & SHF_WRITE))
+        return (bind == STB_LOCAL) ? 'd' : 'D';
+    if (flags & SHF_EXECINSTR)
+        return (bind == STB_LOCAL) ? 't' : 'T';
+    if ((flags & SHF_ALLOC) && !(flags & SHF_WRITE)) {
+        if (type == STT_OBJECT && bind == STB_LOCAL)
+            return 'r';
+        return (bind == STB_LOCAL) ? 'r' : 'R';
+    }
+
+    return '?';
+}
+
+
 
 int check_opt(char *av, t_opt *opt)
 {

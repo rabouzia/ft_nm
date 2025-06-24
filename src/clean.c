@@ -14,7 +14,8 @@ void ft_end(t_nm *nm, char *msg)
 {
 	if (nm->fdata)
 		munmap(nm->fdata, nm->fsize);
-	ft_resclear(&nm->res);
+	if (nm->res)
+		ft_resclear(&nm->res);
 	close(nm->fd);
 	fprintf(stderr, "%s", msg);
 	exit(1);
@@ -57,13 +58,12 @@ char *extract_str(const char *s)
 {
 	if (!s) return NULL;
 
-	size_t len = 0;
-	while (s[len] && s[len] != '@')
-		len++;
+	const char *at = strchr(s, '@');
+	if (!at) return NULL;
 
+	size_t len = at - s;
 	char *res = malloc(len + 1);
-	if (!res)
-		return NULL;
+	if (!res) return NULL;
 
 	memcpy(res, s, len);
 	res[len] = '\0';
@@ -77,17 +77,24 @@ void clean_double(t_res **res)
 
 	while (cur)
 	{
-		if (!strchr(cur->symbol, '@'))
+		if (!strchr(cur->symbol, '@')) // on ne supprime que les symboles sans version
 		{
 			t_res *cand = *res;
 			while (cand)
 			{
-				if (strchr(cand->symbol, '@'))
+				if (cand != cur && strstr(cand->symbol, "@GLIBC_"))
 				{
+					if (!strstr(cand->symbol, "@GLIBC_"))
+{
+    cand = cand->next;
+    continue;
+}
 					char *base = extract_str(cand->symbol);
-					if (base && ignore_underscore(cur->symbol, base) == 0)
+					if (base && strcmp(cur->symbol, base) == 0)
 					{
+						// On trash uniquement si c’est le même nom sans la version GLIBC
 						cur->trash = 1;
+						printf("NUKE REMOVED: %s (shadowed by %s)\n", cur->symbol, cand->symbol);
 						free(base);
 						break;
 					}
@@ -100,6 +107,8 @@ void clean_double(t_res **res)
 	}
 }
 
+
+
 void remove_double(t_res **res)
 {
 	t_res *cur = *res;
@@ -109,6 +118,7 @@ void remove_double(t_res **res)
 	{
 		if (cur->trash)
 		{
+
 			if (prev)
 			prev->next = cur->next;
 			else
