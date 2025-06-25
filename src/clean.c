@@ -3,8 +3,10 @@
 void ft_clean(t_nm *nm)
 {
 	if (nm->fdata)
-		munmap(nm->fdata, nm->fsize);
-	// ft_resclear(&nm->res);
+	munmap(nm->fdata, nm->fsize);
+	if (nm->res)
+	ft_resclear(&nm->res);
+	
 	memset(nm, 0, sizeof(t_nm));
 	close(nm->fd);
 }
@@ -82,24 +84,7 @@ void clean_double(t_res **res)
 			t_res *cand = *res;
 			while (cand)
 			{
-				if (cand != cur && strstr(cand->symbol, "@GLIBC_"))
-				{
-					if (!strstr(cand->symbol, "@GLIBC_"))
-{
-    cand = cand->next;
-    continue;
-}
-					char *base = extract_str(cand->symbol);
-					if (base && strcmp(cur->symbol, base) == 0)
-					{
-						// On trash uniquement si c’est le même nom sans la version GLIBC
-						cur->trash = 1;
-						printf("NUKE REMOVED: %s (shadowed by %s)\n", cur->symbol, cand->symbol);
-						free(base);
-						break;
-					}
-					free(base);
-				}
+// 
 				cand = cand->next;
 			}
 		}
@@ -137,12 +122,32 @@ void remove_double(t_res **res)
 	}
 }
 
+void clean_duplicate_addr(t_res **res) {
+	t_res *curr = *res;
+	while (curr && curr->next) {
+		if (curr->addr == curr->next->addr &&
+		    curr->letter == curr->next->letter &&
+		    strncmp(curr->symbol, curr->next->symbol, 19) == 0 && // match __PRETTY_FUNCTION__
+		    strncmp(curr->symbol, "__PRETTY_FUNCTION__", 19) == 0) {
+			t_res *to_delete = curr->next;
+			curr->next = to_delete->next;
+			free(to_delete->symbol);
+			free(to_delete);
+			continue;
+		}
+		curr = curr->next;
+	}
+}
+
+
 bool info_clean(t_nm *nm)
 {
+	// (void)nm; // Suppression de l'avertissement non utilisé
 	ft_nmsort(nm->res);
-	clean_double(&nm->res);
-	ft_check_same(&nm->res);
-	remove_double(&nm->res);
+	// clean_double(&nm->res);
+	// ft_check_same(&nm->res);
+	// remove_double(&nm->res);
+	// clean_duplicate_addr(&nm->res);
 	return 1;
 }
 

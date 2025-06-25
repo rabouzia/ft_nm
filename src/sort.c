@@ -33,8 +33,8 @@ void ft_nmsort(t_res *head)
         swapped = 0;
         ptr = head;
         while (ptr->next) {
-			// printf("Comparing: %s ---- %s\n", ptr->symbol, ptr->next->symbol);
-            if (compare_symbols(ptr->symbol, ptr->next->symbol) > 0) {
+            if (compare_symbols(ptr->symbol, ptr->next->symbol) > 0) 
+			{
    				swap_res(ptr, ptr->next);
    				swapped = 1;
 			}			

@@ -105,13 +105,11 @@ void	ft_resclear(t_res **res)
 	while ((*res))
 	{
 		tmp = (*res)->next;
-		// free((*res)->symbol);
+		free((*res)->symbol);
 		// free((*res)->value);
 		free((*res));
 		(*res) = tmp;
 	}
-	if ((*res)->filename)
-		free((*res)->filename);
 }
 
 // void ft_resprint(t_nm *nm, int ac)
@@ -149,8 +147,8 @@ void ft_resprint(t_nm *nm, int ac)
 	t_res *printable = res;
 
 	// Sauter les trash au début pour éviter d'utiliser filename sur un node supprimé
-	while (printable && printable->trash)
-		printable = printable->next;
+	// while (printable && printable->trash)
+	// 	printable = printable->next;
 
 	if (printable && ((ac > 2 && !nm->is_opt) || (ac > 3 && nm->is_opt)))
 		printf("\n%s:\n", printable->filename);
@@ -162,7 +160,7 @@ void ft_resprint(t_nm *nm, int ac)
 			res = res->next;
 			continue;
 		}
-		if (res->letter == 'U' || res->letter == 'w') 
+		if (res->letter == 'U' || res->letter == 'w'|| res->letter == 'v') 
 		{	
 			if (nm->elf.is_64)
 				printf("%16c", ' ');

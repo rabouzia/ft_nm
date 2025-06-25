@@ -77,6 +77,7 @@ typedef struct s_nm
 	int ac;
 	char **av;
 	int fd;
+	char *name;
 	size_t fsize;
 	t_res *res;
 	bool is_opt;

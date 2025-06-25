@@ -123,7 +123,7 @@ int parse_elf(t_nm *nm, char *av)
 
 int main(int ac, char **av) 
 {
-	static t_nm nm = {0};
+	t_nm nm = {0};
 	if (ac > ARG_MAX || ac < 2)
 		return(0);
 	int i = 1;
@@ -139,7 +139,9 @@ int main(int ac, char **av)
 		if (!info_clean(&nm))
 			return(0);
 		ft_resprint(&nm, ac);
+		free(nm.res->filename);
 		ft_clean(&nm);
+		nm = (t_nm){0};
 		i++;
 	}
 }
