@@ -1,6 +1,5 @@
 {
-	"name": "Debian C Dev",
-	"image": "debian:bookworm",
-	"postCreateCommand": "apt update && apt install -y build-essential valgrind libelf-dev curl zsh git"
-  }
-  
+  "name": "Debian C Dev",
+  "image": "debian:bookworm",
+  "postCreateCommand": "apt update && apt install -y build-essential valgrind libelf-dev curl zsh git && sh -c \"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\""
+}

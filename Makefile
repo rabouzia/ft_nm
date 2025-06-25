@@ -17,7 +17,7 @@ OBJ_DIR	 =	obj/
 # Compiler and flags
 CC       =	cc
 CFLAGS   =	-Wall -Wextra -Werror -g3 -I$(INC_DIR)
-LDFLAGS  =	-lelf
+LDFLAGS  =	-lelf -fPIE
 
 # Source to object mapping
 OBJ      =	$(patsubst src/%.c, $(OBJ_DIR)%.o, $(SRC))
