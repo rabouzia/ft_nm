@@ -95,6 +95,9 @@ char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections)
 
 int check_opt(char *av, t_opt *opt)
 {
+	if (!av || !opt)
+		return 0; // Erreur si les arguments sont invalides
+
 	if (av[0] == '-' && av[1] != '\0') 
 	{
 		if (av[1] == 'a')

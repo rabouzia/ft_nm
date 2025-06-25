@@ -12,6 +12,10 @@ int parse_elf(t_nm *nm, char *av)
 	if (nm->elf.is_64)
 	{
 		Elf64_Ehdr *ehdr = (Elf64_Ehdr *)nm->fdata;
+
+		if ((size_t)ehdr->e_shoff + (ehdr->e_shnum * sizeof(Elf64_Shdr)) > nm->fsize)
+			return 0;
+
 		Elf64_Shdr *shdr = (Elf64_Shdr *)((char *)nm->fdata + ehdr->e_shoff);
 		nm->elf.shdr = shdr;
 		if (ehdr->e_shstrndx >= ehdr->e_shnum)
@@ -19,97 +23,128 @@ int parse_elf(t_nm *nm, char *av)
 
 		for (int i = 0; i < ehdr->e_shnum; i++)
 		{
-			if (shdr[i].sh_type == SHT_SYMTAB)
+			if ((char *)&shdr[i] + sizeof(Elf64_Shdr) > (char *)nm->fdata + nm->fsize)
+				break;
+
+			if (shdr[i].sh_type != SHT_SYMTAB)
+				continue;
+
+			if ((size_t)shdr[i].sh_offset + shdr[i].sh_size > nm->fsize)
+				continue;
+
+			nm->elf.symtab = (void *)((char *)nm->fdata + shdr[i].sh_offset);
+			nm->elf.symbols_nb = shdr[i].sh_size / shdr[i].sh_entsize;
+
+			if (shdr[i].sh_link >= ehdr->e_shnum)
+				continue;
+
+			nm->elf.strtab_section = &shdr[shdr[i].sh_link];
+			if ((size_t)((Elf64_Shdr *)nm->elf.strtab_section)->sh_offset > nm->fsize)
+				continue;
+
+			nm->elf.strtab = (char *)nm->fdata + ((Elf64_Shdr *)nm->elf.strtab_section)->sh_offset;
+
+			for (size_t j = 0; j < nm->elf.symbols_nb; j++)
 			{
-				nm->elf.symtab = (void *)((char *)nm->fdata + shdr[i].sh_offset);
-				nm->elf.symbols_nb = shdr[i].sh_size / shdr[i].sh_entsize;
-				nm->elf.strtab_section = &shdr[shdr[i].sh_link];
-				nm->elf.strtab = (char *)nm->fdata + ((Elf64_Shdr *)nm->elf.strtab_section)->sh_offset;
+				Elf64_Sym *sym = &((Elf64_Sym *)nm->elf.symtab)[j];
+				if ((char *)sym + sizeof(Elf64_Sym) > (char *)nm->fdata + nm->fsize)
+					break;
 
-				for (size_t j = 0; j < nm->elf.symbols_nb; j++)
-				{
-					Elf64_Sym *sym = &((Elf64_Sym *)nm->elf.symtab)[j];
-					if (!sym->st_name)
-						continue;
+				if (!sym->st_name)
+					continue;
 
-					const char *symname = nm->elf.strtab + sym->st_name;
-					if (!symname || symname[0] == '\0')
-						continue;
+				const char *symname = nm->elf.strtab + sym->st_name;
+				if ((char *)symname >= (char *)nm->fdata + nm->fsize || symname[0] == '\0')
+					continue;
 
-					char *name = ft_strdup(symname);
-					if (!name)
-							continue;
-					// Fix : ignorer tous les __PRETTY_FUNCTION__.*
-					if (strncmp(name, "__PRETTY_FUNCTION__", 19) == 0 &&
+				if (strncmp(symname, "__PRETTY_FUNCTION__", 19) == 0 &&
 					(ELF64_ST_TYPE(sym->st_info) == STT_NOTYPE || ELF64_ST_TYPE(sym->st_info) == STT_OBJECT) &&
 					sym->st_shndx == SHN_ABS)
-						{
-							free(name);
-							continue;
-						}
+					continue;
 
+				char *name = ft_strdup(symname);
+				if (!name)
+					continue;
 
+				char type = get_symbol_letter64(*sym, (Elf64_Shdr *)nm->elf.shdr);
+				if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
+				if (ELF64_ST_TYPE(sym->st_info) == STT_SECTION || ELF64_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
+				if (nm->opt.g && ELF64_ST_BIND(sym->st_info) != STB_GLOBAL) { free(name); continue; }
+				if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
 
-					char type = get_symbol_letter64(*sym, (Elf64_Shdr *)nm->elf.shdr);
-					if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
-					if (ELF64_ST_TYPE(sym->st_info) == STT_SECTION || ELF64_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
-					if (nm->opt.g && ELF64_ST_BIND(sym->st_info) != STB_GLOBAL) { free(name); continue; }
-					if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
-
-					ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
-				}
+				ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
 			}
 		}
 	}
-	else
+		else
 	{
 		Elf32_Ehdr *ehdr = (Elf32_Ehdr *)nm->fdata;
+
+		if ((size_t)ehdr->e_shoff + (ehdr->e_shnum * sizeof(Elf32_Shdr)) > nm->fsize)
+			return 0;
+
 		Elf32_Shdr *shdr = (Elf32_Shdr *)((char *)nm->fdata + ehdr->e_shoff);
 		nm->elf.shdr = shdr;
+
 		if (ehdr->e_shstrndx >= ehdr->e_shnum)
 			return 0;
 
 		for (int i = 0; i < ehdr->e_shnum; i++)
 		{
-			if (shdr[i].sh_type == SHT_SYMTAB)
+			if ((char *)&shdr[i] + sizeof(Elf32_Shdr) > (char *)nm->fdata + nm->fsize)
+				break;
+
+			if (shdr[i].sh_type != SHT_SYMTAB)
+				continue;
+
+			if ((size_t)shdr[i].sh_offset + shdr[i].sh_size > nm->fsize)
+				continue;
+
+			Elf32_Sym *symtab = (Elf32_Sym *)((char *)nm->fdata + shdr[i].sh_offset);
+			int symcount = shdr[i].sh_size / shdr[i].sh_entsize;
+
+			if (shdr[i].sh_link >= ehdr->e_shnum)
+				continue;
+
+			Elf32_Shdr *strtab_hdr = &shdr[shdr[i].sh_link];
+			if ((size_t)strtab_hdr->sh_offset > nm->fsize)
+				continue;
+
+			char *strtab = (char *)nm->fdata + strtab_hdr->sh_offset;
+
+			for (int j = 0; j < symcount; j++)
 			{
-				Elf32_Sym *symtab = (Elf32_Sym *)((char *)nm->fdata + shdr[i].sh_offset);
-				int symcount = shdr[i].sh_size / shdr[i].sh_entsize;
-				Elf32_Shdr *strtab_hdr = &shdr[shdr[i].sh_link];
-				char *strtab = (char *)nm->fdata + strtab_hdr->sh_offset;
+				Elf32_Sym *sym = &symtab[j];
+				if ((char *)sym + sizeof(Elf32_Sym) > (char *)nm->fdata + nm->fsize)
+					break;
 
-				for (int j = 0; j < symcount; j++)
-				{
-					Elf32_Sym *sym = &symtab[j];
-					if (!sym->st_name)
-						continue;
+				if (!sym->st_name)
+					continue;
 
-					const char *symname = strtab + sym->st_name;
-					if (!symname || symname[0] == '\0')
-						continue;
+				const char *symname = strtab + sym->st_name;
+				if ((char *)symname >= (char *)nm->fdata + nm->fsize || symname[0] == '\0')
+					continue;
 
-					if (strncmp(symname, "__PRETTY_FUNCTION__", 19) == 0 &&
+				if (strncmp(symname, "__PRETTY_FUNCTION__", 19) == 0 &&
 					(ELF32_ST_TYPE(sym->st_info) == STT_NOTYPE || ELF32_ST_TYPE(sym->st_info) == STT_OBJECT) &&
 					sym->st_shndx == SHN_ABS)
 					continue;
 
+				char *name = ft_strdup(symname);
+				if (!name)
+					continue;
 
+				char type = get_symbol_letter32(*sym, (Elf32_Shdr *)nm->elf.shdr);
+				if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
+				if (ELF32_ST_TYPE(sym->st_info) == STT_SECTION || ELF32_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
+				if (nm->opt.g && ELF32_ST_BIND(sym->st_info) != STB_GLOBAL) { free(name); continue; }
+				if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
 
-					char *name = ft_strdup(symname);
-					if (!name)
-						continue;
-
-					char type = get_symbol_letter32(*sym, (Elf32_Shdr *)nm->elf.shdr);
-					if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
-					if (ELF32_ST_TYPE(sym->st_info) == STT_SECTION || ELF32_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
-					if (nm->opt.g && ELF32_ST_BIND(sym->st_info) != STB_GLOBAL) { free(name); continue; }
-					if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
-
-					ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
-				}
+				ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
 			}
 		}
 	}
+
 
 	if (!nm->res)
 		ft_end(nm, "No symbols found\n");
@@ -123,13 +158,30 @@ int parse_elf(t_nm *nm, char *av)
 
 int main(int ac, char **av) 
 {
-	t_nm nm = {0};
-	if (ac > ARG_MAX || ac < 2)
-		return(0);
+	static t_nm nm = {0};
 	int i = 1;
-	nm.is_opt = check_opt(av[i], &nm.opt);
-	if (nm.is_opt)
-	    i = 2;
+	if (ac >= 2)
+	{
+		nm.is_opt = check_opt(av[i], &nm.opt);
+		if (nm.is_opt)
+			i++;
+	}
+	if (ac - nm.is_opt > ARG_MAX)
+		return (printf("nm: Too many arguments\n"), 0);
+	if (ac < 2 || (nm.is_opt && ac < 3))
+		{
+			int fd = open("a.out", O_RDONLY);
+			if (fd == -1)
+			return (printf("nm: 'a.out': No such file\n"), 0);
+			printf("%d\n", fd);
+			close(fd);
+			if (!check_elf(&nm, "a.out") || !parse_elf(&nm, "a.out") || !info_clean(&nm))
+			return (0);
+			ft_resprint(&nm, 2);
+			ft_clean(&nm);
+			return (0);
+		}
+	return 0;
 	while(av[i])
 	{
 		if (!check_elf(&nm, av[i]))
