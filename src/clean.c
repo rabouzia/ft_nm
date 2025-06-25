@@ -18,7 +18,8 @@ void ft_end(t_nm *nm, char *msg)
 		munmap(nm->fdata, nm->fsize);
 	if (nm->res)
 		ft_resclear(&nm->res);
-	close(nm->fd);
+	if (nm->fd != -1)
+		close(nm->fd);
 	fprintf(stderr, "%s", msg);
 	exit(1);
 }
