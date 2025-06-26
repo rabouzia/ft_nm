@@ -258,7 +258,7 @@ void	remove_node(t_res *res, char *to_delete)
 {
 	t_res	*tmp;
 	t_res	*cur;
-
+	tmp = NULL;
 	cur = res;
 	while (cur)
 	{

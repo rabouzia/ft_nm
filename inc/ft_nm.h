@@ -22,13 +22,18 @@
 #define ARG_ERR "Usage ./ft_nm [-flag] <binary>\n"
 #define FSTAT_ERR "fstat error\n"
 #define MMAP_ERR "mmap error\n"
-#define NO_ELF "Not an ELF file\n"
+#define NO_ELF "nm: %s: file format not recognized\n" 
 #define CHECK_ERR "Error: Invalid ELF file\n"
 #define NO_FILE "Erreur : aucun fichier spécifié.\n"
 #define UKN_OPT "Erreur : option inconnue.\n"
 #define PARSE_ERR "parse err"
-#define ELF_ERR "elf rrr"
+#define ELF_ERR ""
 #define ARG_MAX 2097152
+#define CORRUPT_MSG1 "bfd plugin: %s: file too short\n"
+#define CORRUPT_MSG2 "nm: %s: file format not recognized\n"
+#define NO_SYMBOLS "nm: %s: no symbols\n"
+#define NOT_REG_ERR "nm: not a regular file\n"
+#define NO_RECOG "nm: %s: file format not recognized\n"
 
 //################ FCT MACRO ################
 
@@ -95,6 +100,8 @@ char get_symbol_letter32(Elf32_Sym sym, Elf32_Shdr *sections);
 void ft_nmsort(t_res *head);
 bool info_clean(t_nm *nm);
 int check_elf(t_nm *nm, char *av);
+void ft_sym(t_nm *nm, char *msg);
+void not_elf(t_nm *nm,char *filename);
 int ignore_underscore(const char* a, const char* b);
 
 //##################### LST UTILS #################
@@ -117,6 +124,8 @@ char	*ft_strdup(const char *src);
 void ft_end(t_nm *nm, char *msg);
 void ft_clean(t_nm *nm);
 int check_opt(char *av, t_opt *opt);
+void ft_corrupt(t_nm *nm, char *msg);
+
 //##################### LIBRARY #################
 
 int	ft_strncmp(const char *s1, const char *s2, size_t n);

@@ -1,26 +1,24 @@
 #include "ft_nm.h"
 #include <ctype.h>
 
+
 int parse_elf(t_nm *nm, char *av)
 {
 	if (!nm || !nm->fdata)
 		return 0;
-
 	nm->elf.is_64 = (((unsigned char *)nm->fdata)[EI_CLASS] == ELFCLASS64);
 	nm->elf.ehdr = nm->fdata;
-
 	if (nm->elf.is_64)
 	{
 		Elf64_Ehdr *ehdr = (Elf64_Ehdr *)nm->fdata;
 		Elf64_Shdr *shdr = (Elf64_Shdr *)((char *)nm->fdata + ehdr->e_shoff);
+		if (ehdr->e_shnum == 0 || ehdr->e_shoff == 0 || ehdr->e_shentsize == 0)
+			not_elf(nm, av);
 		nm->elf.shdr = shdr;
 		if (ehdr->e_shstrndx >= ehdr->e_shnum)
-			return 0;
+			ft_sym(nm, av);
 		if ((size_t)ehdr->e_shoff + ehdr->e_shnum * sizeof(Elf64_Shdr) > nm->fsize)
-		{
-			fprintf(stderr, "Corrupt ELF: section headers out of file bounds\n");
-			return 0;
-		}
+			ft_corrupt(nm, av);
 		for (int i = 0; i < ehdr->e_shnum; i++)
 		{
 			if (shdr[i].sh_type == SHT_SYMTAB)
@@ -67,15 +65,13 @@ int parse_elf(t_nm *nm, char *av)
 	{
 		Elf32_Ehdr *ehdr = (Elf32_Ehdr *)nm->fdata;
 		Elf32_Shdr *shdr = (Elf32_Shdr *)((char *)nm->fdata + ehdr->e_shoff);
+		if (ehdr->e_shnum == 0 || ehdr->e_shoff == 0 || ehdr->e_shentsize == 0)
+			not_elf(nm, av);
 		nm->elf.shdr = shdr;
 		if (ehdr->e_shstrndx >= ehdr->e_shnum)
 			return 0;
 		if ((size_t)ehdr->e_shoff + ehdr->e_shnum * sizeof(Elf32_Shdr) > nm->fsize)
-		{
-			fprintf(stderr, "Corrupt ELF: section headers out of file bounds\n");
-			return 0;
-		}
-
+			ft_sym(nm, av);
 		for (int i = 0; i < ehdr->e_shnum; i++)
 		{
 			if (shdr[i].sh_type == SHT_SYMTAB)
@@ -117,8 +113,7 @@ int parse_elf(t_nm *nm, char *av)
 	}
 
 	if (!nm->res)
-		ft_end(nm, "No symbols found\n");
-
+		ft_sym(nm, av);
 	nm->res->filename = ft_strdup(av);
 	if (!nm->res->filename)
 		return 0;

@@ -24,6 +24,46 @@ void ft_end(t_nm *nm, char *msg)
 	exit(1);
 }
 
+void ft_corrupt(t_nm *nm, char *msg)
+{
+	if (nm->fdata)
+		munmap(nm->fdata, nm->fsize);
+	if (nm->res)
+		ft_resclear(&nm->res);
+	if (nm->fd != -1)
+		close(nm->fd);
+	printf(CORRUPT_MSG1, msg);
+	printf(CORRUPT_MSG2, msg);
+	exit(1);
+}
+
+void ft_sym(t_nm *nm, char *msg)
+{
+	if (nm->fdata)
+		munmap(nm->fdata, nm->fsize);
+	if (nm->res)
+		ft_resclear(&nm->res);
+	if (nm->fd != -1)
+		close(nm->fd);
+	fprintf(stderr, NO_SYMBOLS, msg);
+	exit(1);
+}
+
+
+void not_elf(t_nm *nm,char *filename)
+{
+	if (nm->fdata)
+		munmap(nm->fdata, nm->fsize);
+	if (nm->res)
+		ft_resclear(&nm->res);
+	if (nm->fd != -1)
+		close(nm->fd);
+	if (filename)
+		fprintf(stderr, NO_ELF, filename);
+	exit(1);
+}
+
+
 int check_elf(t_nm *nm, char *av)
 {
 	struct stat st;
@@ -33,16 +73,28 @@ int check_elf(t_nm *nm, char *av)
 		ft_end(nm, OP_ERR);
 	if (fstat(nm->fd, &st) < 0)
 		ft_end(nm, FSTAT_ERR);
+	if (!S_ISREG(st.st_mode))
+		ft_end(nm, NOT_REG_ERR);
 
 	nm->fsize = st.st_size;
+	if (nm->fsize == 0) // ELF header size is at least 64 bytes
+		ft_end(nm, ELF_ERR);
+
 	nm->fdata = mmap(NULL, nm->fsize, PROT_READ, MAP_PRIVATE, nm->fd, 0);
 	if (nm->fdata == MAP_FAILED)
 		ft_end(nm, MMAP_ERR);
-
 	unsigned char *e_ident = (unsigned char *)nm->fdata;
-	if (e_ident[EI_MAG0] != ELFMAG0 || e_ident[EI_MAG1] != ELFMAG1 || e_ident[EI_MAG2] != ELFMAG2 || e_ident[EI_MAG3] != ELFMAG3)
-		ft_end(nm, NO_ELF);
-
+	if (nm->fsize < EI_NIDENT || 
+	e_ident[EI_MAG0] != ELFMAG0 || 
+	e_ident[EI_MAG1] != ELFMAG1 || 
+	e_ident[EI_MAG2] != ELFMAG2 || 
+	e_ident[EI_MAG3] != ELFMAG3 ||
+	(e_ident[EI_CLASS] != ELFCLASS32 && e_ident[EI_CLASS] != ELFCLASS64) ||
+	(e_ident[EI_DATA] != ELFDATA2LSB && e_ident[EI_DATA] != ELFDATA2MSB) ||
+	e_ident[EI_VERSION] != EV_CURRENT)
+{
+	not_elf(nm, av);
+}
 	return 1;
 }
 
