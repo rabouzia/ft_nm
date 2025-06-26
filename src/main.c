@@ -130,6 +130,8 @@ if (nm->opt.g) {
 		return 0;
 	return 1;
 }
+#define NO_AOUT "nm: 'a.out': No such file\n"
+#define NO_F "nm: '%s': No such file\n"
 
 int main(int ac, char **av) 
 {
@@ -142,16 +144,17 @@ int main(int ac, char **av)
 			i++;
 	}
 	if (ac - nm.is_opt > ARG_MAX)
-		return (printf("nm: Too many arguments\n"), 0);
+		return (ft_printf("nm: Too many arguments\n"), 0);
 	if (ac < 2 || (nm.is_opt && ac < 3))
 		{
 			int fd = open("a.out", O_RDONLY);
 			if (fd == -1)
-			return (printf("nm: 'a.out': No such file\n"), 0);
-			printf("%d\n", fd);
+				return (ft_printf(NO_AOUT), 0);
+				// perror();
+			// ft_printf("%d\n", fd);
 			close(fd);
 			if (!check_elf(&nm, "a.out") || !parse_elf(&nm, "a.out") || !info_clean(&nm))
-			return (0);
+				return (0);
 			ft_resprint(&nm, 2);
 			ft_clean(&nm);
 			return (0);
@@ -179,10 +182,9 @@ int main(int ac, char **av)
 
 
 /*
--a     Display all symbol table entries, including those inserted for use by debuggers.
--g     Display only global (external) symbols.
-	remove unauthorised functions
-*/
-/*
-- check the case of adding char to the binary
+	remplacer 
+	- les printf par ft_printf
+	- les strchr par ft_strchr
+	- les strcmp par ft_strcmp
+	- les strncmp par ft_strncmp
 */

@@ -3,6 +3,7 @@
 
 //################ LIB ################
 #include <ctype.h>
+#include "ft_dprintf.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -15,6 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <errno.h>
 
 //################ STR MACRO ################
 
@@ -33,7 +35,9 @@
 #define CORRUPT_MSG2 "nm: %s: file format not recognized\n"
 #define NO_SYMBOLS "nm: %s: no symbols\n"
 #define NOT_REG_ERR "nm: not a regular file\n"
+#define NOT_REG_DIR "nm: Warning: '%s' is a directory\n"
 #define NO_RECOG "nm: %s: file format not recognized\n"
+#define NO_F "nm: '%s': No such file\n"
 
 //################ FCT MACRO ################
 
@@ -129,7 +133,7 @@ int check_opt(char *av, t_opt *opt);
 void ft_corrupt(t_nm *nm, char *msg);
 
 //##################### LIBRARY #################
-
+int	ft_printf(const char *s, ...);
 int	ft_strncmp(const char *s1, const char *s2, size_t n);
 
 // struct stat {
@@ -147,3 +151,53 @@ int	ft_strncmp(const char *s1, const char *s2, size_t n);
 //     time_t    st_mtime;   /* time of last modification */
 //     time_t    st_ctime;   /* time of last status change */
 // };
+
+
+#define WRONG_OPT "nm: invalid option -- 'x'\n" \
+"Usage: nm [option(s)] [file(s)]\n" \
+"List symbols in [file(s)] (a.out by default).\n" \
+"The options are:\n" \
+"  -a, --debug-syms       Display debugger-only symbols\n" \
+"  -A, --print-file-name  Print name of the input file before every symbol\n" \
+"  -B                     Same as --format=bsd\n" \
+"  -C, --demangle[=STYLE] Decode mangled/processed symbol names\n" \
+"                           STYLE can be \"none\", \"auto\", \"gnu-v3\", \"java\",\n" \
+"                           \"gnat\", \"dlang\", \"rust\"\n" \
+"      --no-demangle      Do not demangle low-level symbol names\n" \
+"      --recurse-limit    Enable a demangling recursion limit.  (default)\n" \
+"      --no-recurse-limit Disable a demangling recursion limit.\n" \
+"  -D, --dynamic          Display dynamic symbols instead of normal symbols\n" \
+"  -e                     (ignored)\n" \
+"  -f, --format=FORMAT    Use the output format FORMAT.  FORMAT can be `bsd',\n" \
+"                           `sysv', `posix' or 'just-symbols'.\n" \
+"                           The default is `bsd'\n" \
+"  -g, --extern-only      Display only external symbols\n" \
+"    --ifunc-chars=CHARS  Characters to use when displaying ifunc symbols\n" \
+"  -j, --just-symbols     Same as --format=just-symbols\n" \
+"  -l, --line-numbers     Use debugging information to find a filename and\n" \
+"                           line number for each symbol\n" \
+"  -n, --numeric-sort     Sort symbols numerically by address\n" \
+"  -o                     Same as -A\n" \
+"  -p, --no-sort          Do not sort the symbols\n" \
+"  -P, --portability      Same as --format=posix\n" \
+"  -r, --reverse-sort     Reverse the sense of the sort\n" \
+"      --plugin NAME      Load the specified plugin\n" \
+"  -S, --print-size       Print size of defined symbols\n" \
+"  -s, --print-armap      Include index for symbols from archive members\n" \
+"      --quiet            Suppress \"no symbols\" diagnostic\n" \
+"      --size-sort        Sort symbols by size\n" \
+"      --special-syms     Include special symbols in the output\n" \
+"      --synthetic        Display synthetic symbols as well\n" \
+"  -t, --radix=RADIX      Use RADIX for printing symbol values\n" \
+"      --target=BFDNAME   Specify the target object format as BFDNAME\n" \
+"  -u, --undefined-only   Display only undefined symbols\n" \
+"  -U, --defined-only     Display only defined symbols\n" \
+"      --unicode={default|show|invalid|hex|escape|highlight}\n" \
+"                         Specify how to treat UTF-8 encoded unicode characters\n" \
+"  -W, --no-weak          Ignore weak symbols\n" \
+"      --with-symbol-versions  Display version strings after symbol names\n" \
+"  -X 32_64               (ignored)\n" \
+"  @FILE                  Read options from FILE\n" \
+"  -h, --help             Display this information\n" \
+"  -V, --version          Display this program's version number\n" \
+"nm: supported targets: elf64-littleaarch64 elf64-bigaarch64 elf32-littleaarch64 elf32-bigaarch64 elf32-littlearm elf32-bigarm pei-aarch64-little pe-aarch64-little elf64-little elf64-big elf32-little elf32-big srec symbolsrec verilog tekhex binary ihex plugin\n"

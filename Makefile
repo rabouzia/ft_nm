@@ -9,8 +9,10 @@ SRC	     =	src/main.c \
             src/library.c \
             src/sort.c \
             src/parser.c \
-			src/clean.c
-
+			src/clean.c \
+			src/ft_dprintf/ft_dprintf.c \
+			src/ft_dprintf/dprintf_utils.c \
+			src/ft_dprintf/dprintf_utils2.c 
 
 OBJ_DIR	 =	obj/
 

@@ -14,13 +14,15 @@ void ft_clean(t_nm *nm)
 
 void ft_end(t_nm *nm, char *msg)
 {
+	(void)msg;
 	if (nm->fdata)
 		munmap(nm->fdata, nm->fsize);
 	if (nm->res)
 		ft_resclear(&nm->res);
 	if (nm->fd != -1)
 		close(nm->fd);
-	fprintf(stderr, "%s", msg);
+	// if (msg != NULL)
+	// 	fprintf(stderr, NO_F, msg);
 	exit(1);
 }
 
@@ -59,7 +61,7 @@ void not_elf(t_nm *nm,char *filename)
 	if (nm->fd != -1)
 		close(nm->fd);
 	if (filename)
-		fprintf(stderr, NO_ELF, filename);
+		fprintf(stderr, "nm: %s: no symbols", filename);
 	exit(1);
 }
 
@@ -70,12 +72,27 @@ int check_elf(t_nm *nm, char *av)
 
 	nm->fd = open(av, O_RDONLY);
 	if (nm->fd == -1)
-		ft_end(nm, OP_ERR);
+	{
+		perror("nm: run");
+		ft_end(nm, 0);
+	}
 	if (fstat(nm->fd, &st) < 0)
+	{	
+		
 		ft_end(nm, FSTAT_ERR);
+	}
 	if (!S_ISREG(st.st_mode))
-		ft_end(nm, NOT_REG_ERR);
-
+	{
+		// ft_printf("nm: run: file format not recognized");
+		ft_printf("nm: Warning: '%s' is a directory", av);
+		ft_end(nm, 0);
+	}
+	if (!S_ISDIR(st.st_mode))
+	{
+		ft_printf("nm: run: file format not recognized");
+		// printf("sdf");
+		ft_end(nm, 0);
+	}
 	nm->fsize = st.st_size;
 	if (nm->fsize == 0) // ELF header size is at least 64 bytes
 		ft_end(nm, ELF_ERR);
@@ -93,7 +110,7 @@ int check_elf(t_nm *nm, char *av)
 	(e_ident[EI_DATA] != ELFDATA2LSB && e_ident[EI_DATA] != ELFDATA2MSB) ||
 	e_ident[EI_VERSION] != EV_CURRENT)
 {
-	not_elf(nm, av);
+	not_elf\(nm, av);
 }
 	return 1;
 }

@@ -100,18 +100,26 @@ int check_opt(char *av, t_opt *opt)
 
 	if (av[0] == '-' && av[1] != '\0') 
 	{
-		if (av[1] == 'a')
+		switch (av[1])
+		{
+		case 'a':
 			opt->a = true;
-		else if (av[1] == 'r')
+			return 1;
+		case 'r':
 			opt->r = true;
-		else if (av[1] == 'g')
-			opt->g = true;	
-		else if (av[1] == 'u')
+			return 1;
+		case 'g':
+			opt->g = true;
+			return 1;
+		case 'u':
 			opt->u = true;
-		else if (av[1] == 'p')
+			return 1;
+		case 'p':
 			opt->p = true;
-	} 
-	else
-		return 0;
-	return 1; // Options valides
+			return 1;
+		default:
+			return (ft_printf(WRONG_OPT), 0);
+		}	
+	}
+	return 0;
 }
