@@ -16,10 +16,10 @@ OBJ_DIR	 =	obj/
 
 # Compiler and flags
 CC       =	cc
-# CFLAGS   =	-Wall -Wextra -Werror -g3 -I$(INC_DIR)
-# LDFLAGS  =	-lelf -fPIE
-CFLAGS  = -I$(INC_DIR) -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fstack-protector-strong -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror
-LDFLAGS = -fsanitize=address,undefined -fstack-protector-strong
+CFLAGS   =	-Wall -Wextra -Werror -g3 -I$(INC_DIR)
+LDFLAGS  =	-lelf -fPIE
+# CFLAGS  = -I$(INC_DIR) -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fstack-protector-strong -Wall -Wextra -Wpedantic -Wno-unused-parameter -Werror
+# LDFLAGS = -fsanitize=address,undefined -fstack-protector-strong
 
 # Source to object mapping
 OBJ      =	$(patsubst src/%.c, $(OBJ_DIR)%.o, $(SRC))

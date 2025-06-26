@@ -22,24 +22,24 @@ int compare_symbols(const char *s1, const char *s2)
 	return strcmp(s1, s2);
 }
 
-void ft_nmsort(t_res *head) 
+void ft_nmsort(t_nm *nm , t_res *head) 
 {
+    (void) nm;
     if (!head || !head->next)
 		return;
     int swapped;
     t_res *ptr;
-
     do {
-        swapped = 0;
-        ptr = head;
-        while (ptr->next) {
-            if (compare_symbols(ptr->symbol, ptr->next->symbol) > 0) 
-			{
-   				swap_res(ptr, ptr->next);
-   				swapped = 1;
-			}			
-            ptr = ptr->next;
-        }
-    } while (swapped);
+            swapped = 0;
+            ptr = head;
+            while (ptr->next) {
+                if (compare_symbols(ptr->symbol, ptr->next->symbol) > 0) 
+                {
+                    swap_res(ptr, ptr->next);
+                    swapped = 1;
+                }			
+                ptr = ptr->next;
+            }
+        } while (swapped);
 }
 

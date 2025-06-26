@@ -97,12 +97,13 @@ typedef struct s_nm
 
 char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections);
 char get_symbol_letter32(Elf32_Sym sym, Elf32_Shdr *sections);
-void ft_nmsort(t_res *head);
 bool info_clean(t_nm *nm);
 int check_elf(t_nm *nm, char *av);
 void ft_sym(t_nm *nm, char *msg);
 void not_elf(t_nm *nm,char *filename);
 int ignore_underscore(const char* a, const char* b);
+void print_reverse(t_nm * nm);
+int ft_reslen(t_res *res);
 
 //##################### LST UTILS #################
 
@@ -119,7 +120,7 @@ void	free_node(t_res *res);
 void	remove_node(t_res *res, char *to_delete);
 void	remove_last(t_res *res);
 void	remove_first(t_res **res);
-void 	ft_nmsort(t_res* head);
+void 	ft_nmsort(t_nm *nm, t_res* head);
 char	*ft_strdup(const char *src);
 void ft_end(t_nm *nm, char *msg);
 void ft_clean(t_nm *nm);

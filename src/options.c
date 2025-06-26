@@ -13,18 +13,22 @@
 // }
 
 
-// void print_reverse(t_nm * nm)
-// {
-// 	int len = ft_nmlen(nm);
-// 	int i = len;
-// 	// t_nm *tmp = ft_nmlast(nm);
-// 	while (len >= 0)
-// 	{
-// 		tmp = ft_nmnlast(nm, i);
-// 		printf("%016lx   %s\n", nm->addr, nm->symbol);
-// 		i--;
-// 		len--;
-// 	}
+void print_reverse(t_nm * nm)
+{
+	int len = ft_nmlen(nm);
+	int i = len;
+	// t_nm *tmp = ft_nmlast(nm);
+	while (len >= 0)
+	{
+		tmp = ft_nmnlast(nm, i);
+		printf("%016lx   %s\n", nm->addr, nm->symbol);
+		i--;
+		len--;
+	}
+}
 
 
-// }
+void print_maj(t_nm *nm)
+{
+    
+}

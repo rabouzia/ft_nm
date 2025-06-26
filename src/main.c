@@ -120,8 +120,6 @@ int parse_elf(t_nm *nm, char *av)
 	return 1;
 }
 
-
-
 int main(int ac, char **av) 
 {
 	static t_nm nm = {0};
@@ -155,6 +153,7 @@ int main(int ac, char **av)
 			return(0);
 		if (!info_clean(&nm))
 			return(0);
+		// ft_resprint(nm);
 		ft_resprint(&nm, ac);
 		free(nm.res->filename);
 		ft_clean(&nm);
@@ -168,8 +167,6 @@ int main(int ac, char **av)
 /*
 -a     Display all symbol table entries, including those inserted for use by debuggers.
 -g     Display only global (external) symbols.
--p     Don't sort; display in symbol-table order.
--u     Display only undefined symbols.
 -r     Sort in reverse order.
 	remove unauthorised functions
 */

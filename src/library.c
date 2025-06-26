@@ -141,6 +141,33 @@ void	ft_resclear(t_res **res)
 // 		res = res->next;
 // 	}
 // }
+
+// void print_reverse(t_nm * nm)
+// {
+// 	int len = ft_nmlen(nm);
+// 	int i = len;
+// 	// t_nm *tmp = ft_nmlast(nm);
+// 	while (len >= 0)
+// 	{
+// 		tmp = ft_nmnlast(nm, i);
+// 		printf("%016lx   %s\n", nm->addr, nm->symbol);
+// 		i--;
+// 		len--;
+// 	}
+// }
+
+t_res *ft_resnlast(t_res *head , int i)
+{
+	while (head->next && i >= 0)
+	{	
+		head = head->next;
+		i--;
+	}
+	return (head);
+}
+
+
+
 void ft_resprint(t_nm *nm, int ac)
 {
 	t_res *res = nm->res;
@@ -153,30 +180,67 @@ void ft_resprint(t_nm *nm, int ac)
 	if (printable && ((ac > 2 && !nm->is_opt) || (ac > 3 && nm->is_opt)))
 		printf("\n%s:\n", printable->filename);
 
-	while (res)
+	if (!nm->opt.r)
 	{
-		if (res->trash)
+		while (res)
 		{
+			if (res->trash)
+			{
+				res = res->next;
+				continue;
+			}
+			if (res->letter == 'U' || res->letter == 'w'|| res->letter == 'v') 
+			{	
+				if (nm->elf.is_64)
+					printf("%16c", ' ');
+				else
+					printf("%8c", ' ');
+			}
+			else 
+			{	
+				if (nm->elf.is_64)
+					printf("%016lx", res->addr);
+				else
+					printf("%08x", (unsigned int)res->addr);	
+			}
+			printf(" %c %s\n", res->letter, res->symbol);
 			res = res->next;
-			continue;
 		}
-		if (res->letter == 'U' || res->letter == 'w'|| res->letter == 'v') 
-		{	
-			if (nm->elf.is_64)
-				printf("%16c", ' ');
-			else
-				printf("%8c", ' ');
-		}
-		else 
-		{	
-			if (nm->elf.is_64)
-				printf("%016lx", res->addr);
-			else
-				printf("%08x", (unsigned int)res->addr);	
-		}
-		printf(" %c %s\n", res->letter, res->symbol);
-		res = res->next;
 	}
+	else
+		{
+			int i = ft_reslen(nm->res);
+			int len = i;
+			t_res *tmp = ft_resnlast(nm->res, i);
+			while (res)
+		{
+			tmp = ft_resnlast(res, i);
+			if (res->trash)
+			{
+				res = res->next;
+				continue;
+			}
+			if (res->letter == 'U' || res->letter == 'w'|| res->letter == 'v') 
+			{	
+				if (nm->elf.is_64)
+					printf("%16c", ' ');
+				else
+					printf("%8c", ' ');
+			}
+			else 
+			{	
+				if (nm->elf.is_64)
+					printf("%016lx", res->addr);
+				else
+					printf("%08x", (unsigned int)res->addr);	
+			}
+			printf(" %c %s\n", res->letter, res->symbol);
+			i--;
+			len--;
+			res = res->next;
+		}
+
+		}
 }
 
 
