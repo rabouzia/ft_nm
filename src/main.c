@@ -53,7 +53,13 @@ int parse_elf(t_nm *nm, char *av)
 					char type = get_symbol_letter64(*sym, (Elf64_Shdr *)nm->elf.shdr);
 					if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
 					if (ELF64_ST_TYPE(sym->st_info) == STT_SECTION || ELF64_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
-					if (nm->opt.g && ELF64_ST_BIND(sym->st_info) != STB_GLOBAL) { free(name); continue; }
+					if (nm->opt.g) {
+	unsigned char bind = ELF64_ST_BIND(sym->st_info);
+	if (bind != STB_GLOBAL && bind != STB_WEAK) {
+		free(name);
+		continue;
+	}
+}
 					if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
 
 					ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
@@ -103,8 +109,13 @@ int parse_elf(t_nm *nm, char *av)
 					char type = get_symbol_letter32(*sym, (Elf32_Shdr *)nm->elf.shdr);
 					if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
 					if (ELF32_ST_TYPE(sym->st_info) == STT_SECTION || ELF32_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
-					if (nm->opt.g && ELF32_ST_BIND(sym->st_info) != STB_GLOBAL) { free(name); continue; }
-					if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
+if (nm->opt.g) {
+	unsigned char bind = ELF64_ST_BIND(sym->st_info);
+	if (bind != STB_GLOBAL && bind != STB_WEAK) {
+		free(name);
+		continue;
+	}
+}					if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
 
 					ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
 				}
@@ -154,6 +165,9 @@ int main(int ac, char **av)
 		if (!info_clean(&nm))
 			return(0);
 		// ft_resprint(nm);
+		// if (nm.opt.g)
+		// 	print_maj(&nm);
+		// else
 		ft_resprint(&nm, ac);
 		free(nm.res->filename);
 		ft_clean(&nm);
@@ -167,7 +181,6 @@ int main(int ac, char **av)
 /*
 -a     Display all symbol table entries, including those inserted for use by debuggers.
 -g     Display only global (external) symbols.
--r     Sort in reverse order.
 	remove unauthorised functions
 */
 /*

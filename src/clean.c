@@ -198,7 +198,7 @@ bool info_clean(t_nm *nm)
 	// (void)nm; // Suppression de l'avertissement non utilisé
 	if (!nm->opt.p)
 		ft_nmsort(nm, nm->res);
-	// clean_double(&nm->res);
+	clean_double(&nm->res);
 	// ft_check_same(&nm->res);
 	// remove_double(&nm->res);
 	// clean_duplicate_addr(&nm->res);

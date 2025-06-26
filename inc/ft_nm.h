@@ -104,6 +104,7 @@ void not_elf(t_nm *nm,char *filename);
 int ignore_underscore(const char* a, const char* b);
 void print_reverse(t_nm * nm);
 int ft_reslen(t_res *res);
+void print_maj(t_nm *nm);
 
 //##################### LST UTILS #################
 

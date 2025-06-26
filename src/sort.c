@@ -43,3 +43,5 @@ void ft_nmsort(t_nm *nm , t_res *head)
         } while (swapped);
 }
 
+
+ 

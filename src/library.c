@@ -150,20 +150,21 @@ void	ft_resclear(t_res **res)
 // 	while (len >= 0)
 // 	{
 // 		tmp = ft_nmnlast(nm, i);
-// 		printf("%016lx   %s\n", nm->addr, nm->symbol);
+// 		printf("%016lx   %s\n", nm->addr, nm->sym`bol);
 // 		i--;
 // 		len--;
 // 	}
 // }
 
-t_res *ft_resnlast(t_res *head , int i)
+t_res *ft_resnlast(t_res *res, int n)
 {
-	while (head->next && i >= 0)
-	{	
-		head = head->next;
-		i--;
-	}
-	return (head);
+	int len = ft_reslen(res);
+	if (n < 0 || n >= len)
+		return NULL;
+
+	for (int i = 0; i < n && n; i++)
+		res = res->next;
+	return res;
 }
 
 
@@ -209,36 +210,26 @@ void ft_resprint(t_nm *nm, int ac)
 	}
 	else
 		{
-			int i = ft_reslen(nm->res);
-			int len = i;
-			t_res *tmp = ft_resnlast(nm->res, i);
-			while (res)
-		{
-			tmp = ft_resnlast(res, i);
-			if (res->trash)
-			{
-				res = res->next;
-				continue;
+			int len = ft_reslen(nm->res);
+			for (int i = len - 1; i >= 0; i--) {
+				t_res *res = ft_resnlast(nm->res, i);
+				if (!res || res->trash)
+					continue;
+
+				if (res->letter == 'U' || res->letter == 'w' || res->letter == 'v') {
+					if (nm->elf.is_64)
+						printf("%16c", ' ');
+					else
+						printf("%8c", ' ');
+				} 
+				else {
+					if (nm->elf.is_64)
+						printf("%016lx", res->addr);
+					else
+						printf("%08x", (unsigned int)res->addr);
+				}
+				printf(" %c %s\n", res->letter, res->symbol);
 			}
-			if (res->letter == 'U' || res->letter == 'w'|| res->letter == 'v') 
-			{	
-				if (nm->elf.is_64)
-					printf("%16c", ' ');
-				else
-					printf("%8c", ' ');
-			}
-			else 
-			{	
-				if (nm->elf.is_64)
-					printf("%016lx", res->addr);
-				else
-					printf("%08x", (unsigned int)res->addr);	
-			}
-			printf(" %c %s\n", res->letter, res->symbol);
-			i--;
-			len--;
-			res = res->next;
-		}
 
 		}
 }
