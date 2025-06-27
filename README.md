@@ -59,3 +59,5 @@ Analyse et comparaison de la sortie avec l’outil nm.
 🧪 Test
 La sortie de ./ft_nm est comparée à celle de la commande système nm pour s’assurer de la conformité. Les différences de sortie sont minimisées en excluant les symboles non pertinents ou absents selon les options.
 
+tester 1: [tester 1](https://github.com/jmbcorp999/42-Nm-Tester) 
+tester 2: g[tester 1](https://github.com/jemercie/nm_tester)

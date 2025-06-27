@@ -44,9 +44,6 @@ char get_symbol_letter32(Elf32_Sym sym, Elf32_Shdr *sections)
     return '?';
 }
 
-
-
-
 char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections)
 {
     unsigned char bind = ELF64_ST_BIND(sym.st_info);
@@ -91,27 +88,145 @@ char get_symbol_letter64(Elf64_Sym sym, Elf64_Shdr *sections)
     return '?';
 }
 
-
-
-int check_opt(char *av, t_opt *opt)
+int parse_elf(t_nm *nm, char *av)
 {
-	if (!av || !opt)
-		return 0; // Erreur si les arguments sont invalides
-
-	if (av[0] == '-' && av[1] != '\0') 
-	{
-		if (av[1] == 'a')
-			opt->a = true;
-		else if (av[1] == 'r')
-			opt->r = true;
-		else if (av[1] == 'g')
-			opt->g = true;	
-		else if (av[1] == 'u')
-			opt->u = true;
-		else if (av[1] == 'p')
-			opt->p = true;
-	} 
-	else
+	if (!nm || !nm->fdata)
 		return 0;
-	return 1; // Options valides
+	nm->elf.is_64 = (((unsigned char *)nm->fdata)[EI_CLASS] == ELFCLASS64);
+	nm->elf.ehdr = nm->fdata;
+	if (nm->elf.is_64)
+	{
+		Elf64_Ehdr *ehdr = (Elf64_Ehdr *)nm->fdata;
+		Elf64_Shdr *shdr = (Elf64_Shdr *)((char *)nm->fdata + ehdr->e_shoff);
+		if (ehdr->e_shnum == 0 || ehdr->e_shoff == 0 || ehdr->e_shentsize == 0)
+			not_elf(nm, av);
+		nm->elf.shdr = shdr;
+		if (ehdr->e_shstrndx >= ehdr->e_shnum)
+		{
+			fprintf(stderr,NO_SYMBOLS, av);
+			ft_end(nm, 0);
+		}		
+	
+		if ((size_t)ehdr->e_shoff + ehdr->e_shnum * sizeof(Elf64_Shdr) > nm->fsize)
+		{		fprintf(stderr,CORRUPT_MSG1, av);
+				fprintf(stderr,CORRUPT_MSG2, av);
+				ft_end(nm, 0);
+		}
+		for (int i = 0; i < ehdr->e_shnum; i++)
+		{
+			if (shdr[i].sh_type == SHT_SYMTAB)
+			{
+				nm->elf.symtab = (void *)((char *)nm->fdata + shdr[i].sh_offset);
+				nm->elf.symbols_nb = shdr[i].sh_size / shdr[i].sh_entsize;
+				nm->elf.strtab_section = &shdr[shdr[i].sh_link];
+				nm->elf.strtab = (char *)nm->fdata + ((Elf64_Shdr *)nm->elf.strtab_section)->sh_offset;
+
+				for (size_t j = 0; j < nm->elf.symbols_nb; j++)
+				{
+					Elf64_Sym *sym = &((Elf64_Sym *)nm->elf.symtab)[j];
+					if (!sym->st_name)
+						continue;
+
+					const char *symname = nm->elf.strtab + sym->st_name;
+					if (!symname || symname[0] == '\0')
+						continue;
+
+					char *name = ft_strdup(symname);
+					if (!name)
+						continue;
+
+					if (strncmp(name, "__PRETTY_FUNCTION__", 19) == 0 &&
+						(ELF64_ST_TYPE(sym->st_info) == STT_NOTYPE || ELF64_ST_TYPE(sym->st_info) == STT_OBJECT) &&
+						sym->st_shndx == SHN_ABS)
+					{
+						free(name);
+						continue;
+					}
+
+					char type = get_symbol_letter64(*sym, (Elf64_Shdr *)nm->elf.shdr);
+					if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
+					if (ELF64_ST_TYPE(sym->st_info) == STT_SECTION || ELF64_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
+					if (nm->opt.g) {
+	unsigned char bind = ELF64_ST_BIND(sym->st_info);
+	if (bind != STB_GLOBAL && bind != STB_WEAK) {
+		free(name);
+		continue;
+	}
+}
+					if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
+
+					ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
+				}
+			}
+		}
+	}
+	else
+	{
+		Elf32_Ehdr *ehdr = (Elf32_Ehdr *)nm->fdata;
+		Elf32_Shdr *shdr = (Elf32_Shdr *)((char *)nm->fdata + ehdr->e_shoff);
+		if (ehdr->e_shnum == 0 || ehdr->e_shoff == 0 || ehdr->e_shentsize == 0)
+			not_elf(nm, av);
+		nm->elf.shdr = shdr;
+		if (ehdr->e_shstrndx >= ehdr->e_shnum)
+			return 0;
+		if ((size_t)ehdr->e_shoff + ehdr->e_shnum * sizeof(Elf32_Shdr) > nm->fsize)
+		{
+			fprintf(stderr,NO_SYMBOLS, av);
+			ft_end(nm, 0);
+		}
+		for (int i = 0; i < ehdr->e_shnum; i++)
+		{
+			if (shdr[i].sh_type == SHT_SYMTAB)
+			{
+				Elf32_Sym *symtab = (Elf32_Sym *)((char *)nm->fdata + shdr[i].sh_offset);
+				int symcount = shdr[i].sh_size / shdr[i].sh_entsize;
+				Elf32_Shdr *strtab_hdr = &shdr[shdr[i].sh_link];
+				char *strtab = (char *)nm->fdata + strtab_hdr->sh_offset;
+
+				for (int j = 0; j < symcount; j++)
+				{
+					Elf32_Sym *sym = &symtab[j];
+					if (!sym->st_name)
+						continue;
+
+					const char *symname = strtab + sym->st_name;
+					if (!symname || symname[0] == '\0')
+						continue;
+
+					if (strncmp(symname, "__PRETTY_FUNCTION__", 19) == 0 &&
+						(ELF32_ST_TYPE(sym->st_info) == STT_NOTYPE || ELF32_ST_TYPE(sym->st_info) == STT_OBJECT) &&
+						sym->st_shndx == SHN_ABS)
+						continue;
+
+					char *name = ft_strdup(symname);
+					if (!name)
+						continue;
+
+					char type = get_symbol_letter32(*sym, (Elf32_Shdr *)nm->elf.shdr);
+					if (!nm->opt.a && (name[0] == '\0' || name[0] == '$')) { free(name); continue; }
+					if (ELF32_ST_TYPE(sym->st_info) == STT_SECTION || ELF32_ST_TYPE(sym->st_info) == STT_FILE) { free(name); continue; }
+					if (nm->opt.g) {
+						unsigned char bind = ELF64_ST_BIND(sym->st_info);
+						if (bind != STB_GLOBAL && bind != STB_WEAK) {
+							free(name);
+							continue;
+						}
+					}					
+						if (nm->opt.u && sym->st_shndx != SHN_UNDEF) { free(name); continue; }
+
+								ft_resaddback(&nm->res, ft_resnew(name, sym->st_value, type));
+							}
+					}
+		}
+	}
+
+	if (!nm->res)
+		{
+			fprintf(stderr,NO_SYMBOLS, av);
+			ft_end(nm, 0);
+		}
+	nm->res->filename = ft_strdup(av);
+	if (!nm->res->filename)
+		return 0;
+	return 1;
 }

@@ -6,11 +6,12 @@ DIR      =	src/
 INC_DIR  =	inc/
 
 SRC	     =	src/main.c \
-            src/library.c \
+            src/lst_lib.c \
             src/sort.c \
             src/parser.c \
-			src/clean.c
-
+			src/clean.c \
+			src/bonus.c \
+			src/libft.c \
 
 OBJ_DIR	 =	obj/
 

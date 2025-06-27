@@ -20,22 +20,23 @@ void ft_end(t_nm *nm, char *msg)
 		ft_resclear(&nm->res);
 	if (nm->fd != -1)
 		close(nm->fd);
-	fprintf(stderr, "%s", msg);
+	if (msg)
+		fprintf(stdout,"%s", msg);
 	exit(1);
 }
 
-void ft_corrupt(t_nm *nm, char *msg)
-{
-	if (nm->fdata)
-		munmap(nm->fdata, nm->fsize);
-	if (nm->res)
-		ft_resclear(&nm->res);
-	if (nm->fd != -1)
-		close(nm->fd);
-	printf(CORRUPT_MSG1, msg);
-	printf(CORRUPT_MSG2, msg);
-	exit(1);
-}
+// void ft_corrupt(t_nm *nm, char *msg)
+// {
+// 	if (nm->fdata)
+// 		munmap(nm->fdata, nm->fsize);
+// 	if (nm->res)
+// 		ft_resclear(&nm->res);
+// 	if (nm->fd != -1)
+// 		close(nm->fd);
+// 	fprintf(stderr,CORRUPT_MSG1, msg);
+// 	fprintf(stderr,CORRUPT_MSG2, msg);
+// 	exit(1);
+// }
 
 void ft_sym(t_nm *nm, char *msg)
 {
@@ -45,7 +46,7 @@ void ft_sym(t_nm *nm, char *msg)
 		ft_resclear(&nm->res);
 	if (nm->fd != -1)
 		close(nm->fd);
-	fprintf(stderr, NO_SYMBOLS, msg);
+	fprintf(stderr,NO_SYMBOLS, msg);
 	exit(1);
 }
 
@@ -59,7 +60,7 @@ void not_elf(t_nm *nm,char *filename)
 	if (nm->fd != -1)
 		close(nm->fd);
 	if (filename)
-		fprintf(stderr, NO_ELF, filename);
+		fprintf(stderr,NO_ELF, filename);
 	exit(1);
 }
 
@@ -70,20 +71,24 @@ int check_elf(t_nm *nm, char *av)
 
 	nm->fd = open(av, O_RDONLY);
 	if (nm->fd == -1)
-		ft_end(nm, OP_ERR);
-	if (fstat(nm->fd, &st) < 0)
-		ft_end(nm, FSTAT_ERR);
-	if (!S_ISREG(st.st_mode))
-		ft_end(nm, NOT_REG_ERR);
+	{
+		perror("nm: run");
+		ft_end(nm, 0);
+	}
+	if (fstat(nm->fd, &st) < 0 || S_ISDIR(st.st_mode))
+        return fprintf(stderr, "nm: Warning: '%s' is a directory\n", av);
 
 	nm->fsize = st.st_size;
-	if (nm->fsize == 0) // ELF header size is at least 64 bytes
+	if (nm->fsize == 0)
 		ft_end(nm, ELF_ERR);
 
 	nm->fdata = mmap(NULL, nm->fsize, PROT_READ, MAP_PRIVATE, nm->fd, 0);
 	if (nm->fdata == MAP_FAILED)
-		ft_end(nm, MMAP_ERR);
-	unsigned char *e_ident = (unsigned char *)nm->fdata;
+	{
+		fprintf(stderr, "nm: Warning: '%s': Unable to map file\n", av);
+		ft_end(nm, 0);
+	}
+		unsigned char *e_ident = (unsigned char *)nm->fdata;
 	if (nm->fsize < EI_NIDENT || 
 	e_ident[EI_MAG0] != ELFMAG0 || 
 	e_ident[EI_MAG1] != ELFMAG1 || 
@@ -93,7 +98,8 @@ int check_elf(t_nm *nm, char *av)
 	(e_ident[EI_DATA] != ELFDATA2LSB && e_ident[EI_DATA] != ELFDATA2MSB) ||
 	e_ident[EI_VERSION] != EV_CURRENT)
 {
-	not_elf(nm, av);
+	fprintf(stderr, "nm: %s: file format not recognized\n", av);
+	ft_end(nm, 0);
 }
 	return 1;
 }
@@ -132,12 +138,11 @@ void clean_double(t_res **res)
 
 	while (cur)
 	{
-		if (!strchr(cur->symbol, '@')) // on ne supprime que les symboles sans version
+		if (!strchr(cur->symbol, '@'))
 		{
 			t_res *cand = *res;
 			while (cand)
 			{
-// 
 				cand = cand->next;
 			}
 		}
@@ -164,7 +169,6 @@ void remove_double(t_res **res)
 			
 			t_res *to_free = cur;
 			cur = cur->next;
-			// free(to_free->symbol);
 			free(to_free);
 		}
 		else
@@ -180,7 +184,7 @@ void clean_duplicate_addr(t_res **res) {
 	while (curr && curr->next) {
 		if (curr->addr == curr->next->addr &&
 		    curr->letter == curr->next->letter &&
-		    strncmp(curr->symbol, curr->next->symbol, 19) == 0 && // match __PRETTY_FUNCTION__
+		    strncmp(curr->symbol, curr->next->symbol, 19) == 0 &&
 		    strncmp(curr->symbol, "__PRETTY_FUNCTION__", 19) == 0) {
 			t_res *to_delete = curr->next;
 			curr->next = to_delete->next;
@@ -195,13 +199,9 @@ void clean_duplicate_addr(t_res **res) {
 
 bool info_clean(t_nm *nm)
 {
-	// (void)nm; // Suppression de l'avertissement non utilisé
 	if (!nm->opt.p)
 		ft_nmsort(nm, nm->res);
 	clean_double(&nm->res);
-	// ft_check_same(&nm->res);
-	// remove_double(&nm->res);
-	// clean_duplicate_addr(&nm->res);
 	return 1;
 }
 
